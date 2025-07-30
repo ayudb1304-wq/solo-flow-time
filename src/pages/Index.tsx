@@ -6,6 +6,7 @@ import { ProjectsPage } from "@/components/ProjectsPage";
 import { ProjectDetailPage } from "@/components/ProjectDetailPage";
 import { InvoicesPage } from "@/components/InvoicesPage";
 import { InvoiceGenerator } from "@/components/InvoiceGenerator";
+import { SettingsPage } from "@/components/SettingsPage";
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -60,7 +61,7 @@ const Index = () => {
       case "invoices":
         return <InvoicesPage />;
       case "settings":
-        return <div>Settings Page - Coming Soon</div>;
+        return <SettingsPage />;
       default:
         return <Dashboard onProjectSelect={handleProjectSelect} />;
     }

@@ -208,7 +208,8 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
       setNewProjectName("");
       setSelectedClientId("");
       setIsDialogOpen(false);
-      fetchProjects();
+      // Refresh all data to update stats
+      fetchAllData();
     } catch (error) {
       toast({
         title: "Error",

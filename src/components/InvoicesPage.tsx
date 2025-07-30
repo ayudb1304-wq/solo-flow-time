@@ -5,17 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Eye, DollarSign, Download, Edit } from "lucide-react";
+import { FileText, Eye, DollarSign, Download, Edit, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InvoicePreviewEditor } from "@/components/InvoicePreviewEditor";
 import jsPDF from 'jspdf';
 
 interface Invoice {
   id: string;
   invoice_number: string;
   client_name: string;
+  client_address: string | null;
   issue_date: string;
   due_date: string;
   status: string;
@@ -29,14 +31,8 @@ interface Invoice {
 export const InvoicesPage = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editForm, setEditForm] = useState({
-    client_name: "",
-    total_amount: 0,
-    due_date: "",
-    hourly_rate: 0
-  });
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -96,44 +92,31 @@ export const InvoicesPage = () => {
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
-    setEditingInvoice(invoice);
-    setEditForm({
-      client_name: invoice.client_name,
-      total_amount: invoice.total_amount,
-      due_date: invoice.due_date,
-      hourly_rate: invoice.hourly_rate
-    });
-    setIsEditDialogOpen(true);
+    setSelectedInvoice(invoice);
+    setIsPreviewOpen(true);
   };
 
-  const handleUpdateInvoice = async () => {
-    if (!editingInvoice) return;
-
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (!confirm('Are you sure you want to delete this invoice?')) return;
+    
     try {
       const { error } = await supabase
         .from('invoices')
-        .update({
-          client_name: editForm.client_name,
-          total_amount: editForm.total_amount,
-          due_date: editForm.due_date,
-          hourly_rate: editForm.hourly_rate
-        })
-        .eq('id', editingInvoice.id);
+        .delete()
+        .eq('id', invoiceId);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Invoice updated successfully",
+        description: "Invoice deleted successfully",
       });
 
-      setIsEditDialogOpen(false);
-      setEditingInvoice(null);
       fetchInvoices();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update invoice",
+        description: "Failed to delete invoice",
         variant: "destructive",
       });
     }
@@ -272,16 +255,14 @@ export const InvoicesPage = () => {
                     <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        {invoice.status === 'draft' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditInvoice(invoice)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditInvoice(invoice)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          {invoice.status === 'draft' ? 'Edit' : 'View'}
+                        </Button>
                         {invoice.status === 'sent' && (
                           <Button
                             size="sm"
@@ -298,6 +279,13 @@ export const InvoicesPage = () => {
                           <Download className="h-4 w-4 mr-1" />
                           PDF
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteInvoice(invoice.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -308,58 +296,18 @@ export const InvoicesPage = () => {
         </CardContent>
       </Card>
 
-      {/* Edit Invoice Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Invoice</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="client-name">Client Name</Label>
-              <Input
-                id="client-name"
-                value={editForm.client_name}
-                onChange={(e) => setEditForm({...editForm, client_name: e.target.value})}
-                placeholder="Enter client name"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="total-amount">Total Amount</Label>
-              <Input
-                id="total-amount"
-                type="number"
-                value={editForm.total_amount}
-                onChange={(e) => setEditForm({...editForm, total_amount: parseFloat(e.target.value) || 0})}
-                placeholder="Enter total amount"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="hourly-rate">Hourly Rate</Label>
-              <Input
-                id="hourly-rate"
-                type="number"
-                value={editForm.hourly_rate}
-                onChange={(e) => setEditForm({...editForm, hourly_rate: parseFloat(e.target.value) || 0})}
-                placeholder="Enter hourly rate"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="due-date">Due Date</Label>
-              <Input
-                id="due-date"
-                type="date"
-                value={editForm.due_date}
-                onChange={(e) => setEditForm({...editForm, due_date: e.target.value})}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleUpdateInvoice}>Update Invoice</Button>
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Invoice Preview Editor */}
+      {selectedInvoice && (
+        <InvoicePreviewEditor
+          invoice={selectedInvoice}
+          isOpen={isPreviewOpen}
+          onClose={() => {
+            setIsPreviewOpen(false);
+            setSelectedInvoice(null);
+          }}
+          onUpdate={fetchInvoices}
+        />
+      )}
     </div>
   );
 };
