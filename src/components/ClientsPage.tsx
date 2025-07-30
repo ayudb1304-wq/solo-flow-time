@@ -1,108 +1,139 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Badge } from "./ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { 
-  Plus, 
-  Search, 
-  Users, 
-  Mail, 
-  MapPin, 
-  Edit, 
-  Trash2,
-  Building
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Search, Plus, Trash2, Edit, Users, FolderOpen, Clock, Mail, MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Client {
   id: string;
   name: string;
   email: string;
   address: string;
-  projectsCount: number;
-  totalHours: number;
-  lastProject: string;
+  created_at: string;
 }
 
-const mockClients: Client[] = [
-  {
-    id: "1",
-    name: "TechCorp Inc.",
-    email: "contact@techcorp.com",
-    address: "123 Tech Street, San Francisco, CA",
-    projectsCount: 3,
-    totalHours: 156.5,
-    lastProject: "E-commerce Redesign"
-  },
-  {
-    id: "2", 
-    name: "StartupXYZ",
-    email: "hello@startupxyz.com",
-    address: "456 Innovation Ave, Austin, TX",
-    projectsCount: 1,
-    totalHours: 89.0,
-    lastProject: "Mobile App Development"
-  },
-  {
-    id: "3",
-    name: "Local Restaurant Group",
-    email: "marketing@localrestaurants.com", 
-    address: "789 Main St, Chicago, IL",
-    projectsCount: 2,
-    totalHours: 45.5,
-    lastProject: "Brand Identity Package"
-  }
-];
-
 export const ClientsPage = () => {
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [newClient, setNewClient] = useState({
     name: "",
     email: "",
     address: ""
   });
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      fetchClients();
+    }
+  }, [user]);
+
+  const fetchClients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch clients",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddClient = () => {
-    const client: Client = {
-      id: Date.now().toString(),
-      ...newClient,
-      projectsCount: 0,
-      totalHours: 0,
-      lastProject: "None"
-    };
-    setClients([...clients, client]);
-    setNewClient({ name: "", email: "", address: "" });
-    setIsAddDialogOpen(false);
+  const handleAddClient = async () => {
+    if (!newClient.name || !newClient.email) return;
+
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .insert({
+          name: newClient.name,
+          email: newClient.email,
+          address: newClient.address,
+          user_id: user?.id,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Client added successfully",
+      });
+
+      setNewClient({ name: "", email: "", address: "" });
+      setIsDialogOpen(false);
+      fetchClients();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add client",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteClient = (id: string) => {
-    setClients(clients.filter(client => client.id !== id));
+  const handleDeleteClient = async (clientId: string) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', clientId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Client deleted successfully",
+      });
+
+      fetchClients();
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to delete client",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return <div className="p-6">Loading clients...</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Clients</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your client relationships and contact information
-          </p>
+          <p className="text-muted-foreground">Manage your client relationships</p>
         </div>
         
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="lg">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
               Add Client
             </Button>
           </DialogTrigger>
@@ -110,53 +141,44 @@ export const ClientsPage = () => {
             <DialogHeader>
               <DialogTitle>Add New Client</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="clientName">Client Name</Label>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name</Label>
                 <Input
-                  id="clientName"
-                  placeholder="e.g., TechCorp Inc."
+                  id="name"
                   value={newClient.name}
                   onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+                  placeholder="Client name"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientEmail">Email</Label>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="clientEmail"
+                  id="email"
                   type="email"
-                  placeholder="contact@client.com"
                   value={newClient.email}
                   onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                  placeholder="client@email.com"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientAddress">Address (Optional)</Label>
+              <div className="grid gap-2">
+                <Label htmlFor="address">Address (Optional)</Label>
                 <Input
-                  id="clientAddress"
-                  placeholder="123 Business St, City, State"
+                  id="address"
                   value={newClient.address}
                   onChange={(e) => setNewClient({ ...newClient, address: e.target.value })}
+                  placeholder="123 Client Street"
                 />
               </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleAddClient}>
-                  Add Client
-                </Button>
-              </div>
+              <Button onClick={handleAddClient} disabled={!newClient.name || !newClient.email}>
+                Add Client
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Search and Stats */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -166,102 +188,101 @@ export const ClientsPage = () => {
             className="pl-10"
           />
         </div>
-        
-        <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-          <div className="flex items-center">
-            <Users className="h-4 w-4 mr-2" />
-            {filteredClients.length} clients
-          </div>
-          <div className="flex items-center">
-            <Building className="h-4 w-4 mr-2" />
-            {clients.reduce((sum, client) => sum + client.projectsCount, 0)} projects
-          </div>
-        </div>
       </div>
 
-      {/* Clients Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredClients.map((client) => (
-          <Card key={client.id} className="hover:shadow-medium transition-all duration-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg font-semibold text-foreground">
-                    {client.name}
-                  </CardTitle>
-                  <div className="flex items-center text-sm text-muted-foreground mt-1">
-                    <Mail className="h-3 w-3 mr-1" />
-                    {client.email}
-                  </div>
-                </div>
-                <div className="flex space-x-1">
-                  <Button variant="ghost" size="sm">
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredClients.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
+            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredClients.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Since</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {filteredClients.length > 0 ? 
+                new Date(Math.min(...filteredClients.map(c => new Date(c.created_at).getTime()))).getFullYear() 
+                : new Date().getFullYear()}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {filteredClients.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Users className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
+              {searchTerm ? "No clients found" : "No clients yet"}
+            </h3>
+            <p className="text-muted-foreground mb-4 text-center">
+              {searchTerm 
+                ? "Try adjusting your search terms"
+                : "Add your first client to start managing projects"
+              }
+            </p>
+            {!searchTerm && (
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Client
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredClients.map((client) => (
+            <Card key={client.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{client.name}</CardTitle>
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleDeleteClient(client.id)}
-                    className="hover:text-destructive"
+                    className="text-muted-foreground hover:text-destructive"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              {client.address && (
-                <div className="flex items-start text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="line-clamp-2">{client.address}</span>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Mail className="h-3 w-3 mr-2" />
+                    {client.email}
+                  </div>
+                  {client.address && (
+                    <div className="flex items-start text-sm text-muted-foreground">
+                      <MapPin className="h-3 w-3 mr-2 mt-0.5 flex-shrink-0" />
+                      {client.address}
+                    </div>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Added:</strong> {new Date(client.created_at).toLocaleDateString()}
+                  </p>
                 </div>
-              )}
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Projects</p>
-                  <p className="font-semibold">{client.projectsCount}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Total Hours</p>
-                  <p className="font-semibold">{client.totalHours}h</p>
-                </div>
-              </div>
-              
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Latest Project</p>
-                <Badge variant="outline" className="text-xs">
-                  {client.lastProject}
-                </Badge>
-              </div>
-              
-              <Button variant="outline" className="w-full" size="sm">
-                View Projects
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredClients.length === 0 && (
-        <div className="text-center py-12">
-          <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            {searchTerm ? "No clients found" : "No clients yet"}
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            {searchTerm 
-              ? "Try adjusting your search terms"
-              : "Add your first client to start managing projects and tracking time"
-            }
-          </p>
-          {!searchTerm && (
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Your First Client
-            </Button>
-          )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </div>
