@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Eye, DollarSign } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FileText, Eye, DollarSign, Download, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import jsPDF from 'jspdf';
 
 interface Invoice {
   id: string;
@@ -16,6 +20,7 @@ interface Invoice {
   due_date: string;
   status: string;
   total_amount: number;
+  hourly_rate: number;
   projects: {
     name: string;
   };
@@ -24,6 +29,14 @@ interface Invoice {
 export const InvoicesPage = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    client_name: "",
+    total_amount: 0,
+    due_date: "",
+    hourly_rate: 0
+  });
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -80,6 +93,75 @@ export const InvoicesPage = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setEditingInvoice(invoice);
+    setEditForm({
+      client_name: invoice.client_name,
+      total_amount: invoice.total_amount,
+      due_date: invoice.due_date,
+      hourly_rate: invoice.hourly_rate
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateInvoice = async () => {
+    if (!editingInvoice) return;
+
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({
+          client_name: editForm.client_name,
+          total_amount: editForm.total_amount,
+          due_date: editForm.due_date,
+          hourly_rate: editForm.hourly_rate
+        })
+        .eq('id', editingInvoice.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Invoice updated successfully",
+      });
+
+      setIsEditDialogOpen(false);
+      setEditingInvoice(null);
+      fetchInvoices();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update invoice",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadInvoicePDF = (invoice: Invoice) => {
+    const doc = new jsPDF();
+    
+    // Add invoice content
+    doc.setFontSize(20);
+    doc.text('INVOICE', 20, 30);
+    
+    doc.setFontSize(12);
+    doc.text(`Invoice #: ${invoice.invoice_number}`, 20, 50);
+    doc.text(`Client: ${invoice.client_name}`, 20, 65);
+    doc.text(`Project: ${invoice.projects.name}`, 20, 80);
+    doc.text(`Issue Date: ${new Date(invoice.issue_date).toLocaleDateString()}`, 20, 95);
+    doc.text(`Due Date: ${new Date(invoice.due_date).toLocaleDateString()}`, 20, 110);
+    doc.text(`Amount: $${invoice.total_amount.toFixed(2)}`, 20, 125);
+    doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, 140);
+    
+    // Save the PDF
+    doc.save(`invoice-${invoice.invoice_number}.pdf`);
+    
+    toast({
+      title: "Success",
+      description: "Invoice PDF downloaded successfully",
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -190,6 +272,16 @@ export const InvoicesPage = () => {
                     <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
+                        {invoice.status === 'draft' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditInvoice(invoice)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                        )}
                         {invoice.status === 'sent' && (
                           <Button
                             size="sm"
@@ -198,6 +290,14 @@ export const InvoicesPage = () => {
                             Mark Paid
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => downloadInvoicePDF(invoice)}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          PDF
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -207,6 +307,59 @@ export const InvoicesPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Invoice Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Invoice</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="client-name">Client Name</Label>
+              <Input
+                id="client-name"
+                value={editForm.client_name}
+                onChange={(e) => setEditForm({...editForm, client_name: e.target.value})}
+                placeholder="Enter client name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="total-amount">Total Amount</Label>
+              <Input
+                id="total-amount"
+                type="number"
+                value={editForm.total_amount}
+                onChange={(e) => setEditForm({...editForm, total_amount: parseFloat(e.target.value) || 0})}
+                placeholder="Enter total amount"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="hourly-rate">Hourly Rate</Label>
+              <Input
+                id="hourly-rate"
+                type="number"
+                value={editForm.hourly_rate}
+                onChange={(e) => setEditForm({...editForm, hourly_rate: parseFloat(e.target.value) || 0})}
+                placeholder="Enter hourly rate"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="due-date">Due Date</Label>
+              <Input
+                id="due-date"
+                type="date"
+                value={editForm.due_date}
+                onChange={(e) => setEditForm({...editForm, due_date: e.target.value})}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleUpdateInvoice}>Update Invoice</Button>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

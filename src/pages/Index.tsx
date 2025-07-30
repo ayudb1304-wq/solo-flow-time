@@ -62,7 +62,7 @@ const Index = () => {
       case "settings":
         return <div>Settings Page - Coming Soon</div>;
       default:
-        return <Dashboard />;
+        return <Dashboard onProjectSelect={handleProjectSelect} />;
     }
   };
 
