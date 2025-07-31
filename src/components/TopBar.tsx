@@ -19,19 +19,8 @@ export const TopBar = () => {
           </div>
         </div>
 
-        {/* Global Timer */}
-        <div className="flex-1 max-w-md mx-8">
-          <div className="bg-muted rounded-lg p-3 text-center">
-            <span className="text-sm text-muted-foreground">
-              Select a task to start tracking
-            </span>
-          </div>
-        </div>
 
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm">
-            <Bell className="h-4 w-4" />
-          </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

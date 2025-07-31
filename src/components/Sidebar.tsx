@@ -26,10 +26,6 @@ export const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
   return (
     <div className="w-64 bg-card border-r border-border shadow-soft min-h-[calc(100vh-73px)]">
       <div className="p-4">
-        <Button className="w-full mb-6" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Quick Add
-        </Button>
         
         <nav className="space-y-2">
           {navigation.map((item) => {
