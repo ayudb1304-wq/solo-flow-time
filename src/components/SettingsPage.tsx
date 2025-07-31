@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Building, Settings } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { User, Building, Settings, Crown, Zap, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,6 +21,7 @@ export const SettingsPage = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
   const [formData, setFormData] = useState({
     freelancer_name: "",
     company_address: "",
@@ -97,6 +99,50 @@ export const SettingsPage = () => {
     }));
   };
 
+  const handleUpgrade = async (planId: 'pro' | 'business') => {
+    setUpgrading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-razorpay-subscription', {
+        body: { planId, userId: user?.id }
+      });
+
+      if (error) throw error;
+
+      // Open Razorpay payment page
+      window.open(data.short_url, '_blank');
+      
+      toast({
+        title: "Redirecting to payment",
+        description: "Complete your payment to upgrade your plan",
+      });
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
+  const getPlanIcon = (plan: string) => {
+    switch (plan) {
+      case 'pro': return <Zap className="h-4 w-4" />;
+      case 'business': return <Crown className="h-4 w-4" />;
+      default: return <Star className="h-4 w-4" />;
+    }
+  };
+
+  const getPlanColor = (plan: string) => {
+    switch (plan) {
+      case 'pro': return 'bg-blue-500';
+      case 'business': return 'bg-purple-500';
+      default: return 'bg-green-500';
+    }
+  };
+
   if (loading) {
     return <div className="p-6">Loading settings...</div>;
   }
@@ -168,6 +214,94 @@ export const SettingsPage = () => {
             <Button onClick={handleSave} disabled={saving} className="w-full">
               {saving ? "Saving..." : "Save Company Info"}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Subscription Management */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5" />
+              Subscription & Billing
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Current Plan */}
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                {getPlanIcon(profile?.subscription_status || 'trial')}
+                <div>
+                  <h3 className="font-semibold capitalize">
+                    {profile?.subscription_status || 'trial'} Plan
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {profile?.subscription_status === 'trial' && 'Limited features - Upgrade for full access'}
+                    {profile?.subscription_status === 'pro' && 'Unlimited clients & projects'}
+                    {profile?.subscription_status === 'business' && 'Everything + multi-user access'}
+                  </p>
+                </div>
+              </div>
+              <Badge variant="secondary" className={`${getPlanColor(profile?.subscription_status || 'trial')} text-white`}>
+                {profile?.subscription_status === 'trial' ? 'Free' : 'Active'}
+              </Badge>
+            </div>
+
+            {/* Upgrade Options */}
+            {profile?.subscription_status === 'trial' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Pro Plan */}
+                <Card className="border-2 border-blue-200">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-blue-600">
+                      <Zap className="h-5 w-5" />
+                      Pro Plan
+                    </CardTitle>
+                    <div className="text-2xl font-bold">₹799<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <ul className="space-y-2 text-sm">
+                      <li>✓ Unlimited clients & projects</li>
+                      <li>✓ Advanced invoicing</li>
+                      <li>✓ Detailed reports</li>
+                      <li>✓ Priority support</li>
+                    </ul>
+                    <Button 
+                      onClick={() => handleUpgrade('pro')} 
+                      disabled={upgrading}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      {upgrading ? 'Processing...' : 'Upgrade to Pro'}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Business Plan */}
+                <Card className="border-2 border-purple-200">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-purple-600">
+                      <Crown className="h-5 w-5" />
+                      Business Plan
+                    </CardTitle>
+                    <div className="text-2xl font-bold">₹1599<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <ul className="space-y-2 text-sm">
+                      <li>✓ Everything in Pro</li>
+                      <li>✓ Multi-user access</li>
+                      <li>✓ API integrations</li>
+                      <li>✓ White-label options</li>
+                    </ul>
+                    <Button 
+                      onClick={() => handleUpgrade('business')} 
+                      disabled={upgrading}
+                      className="w-full bg-purple-600 hover:bg-purple-700"
+                    >
+                      {upgrading ? 'Processing...' : 'Upgrade to Business'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </CardContent>
         </Card>
 
