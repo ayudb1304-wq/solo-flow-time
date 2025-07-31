@@ -21,8 +21,8 @@ serve(async (req) => {
       throw new Error('Razorpay credentials not found');
     }
 
-    // Plan configurations
-    const plans = {
+    // Plan configurations with amounts for creating plans dynamically
+    const planConfigs = {
       pro: {
         amount: 79900, // ₹799 in paise
         period: 'monthly',
@@ -47,14 +47,35 @@ serve(async (req) => {
       }
     };
 
-    const selectedPlan = plans[planId as keyof typeof plans];
-    if (!selectedPlan) {
+    const selectedPlanConfig = planConfigs[planId as keyof typeof planConfigs];
+    if (!selectedPlanConfig) {
       throw new Error('Invalid plan selected');
     }
 
-    // Create Razorpay subscription
     const auth = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
+
+    // First create a plan in Razorpay
+    const planResponse = await fetch('https://api.razorpay.com/v1/plans', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        period: selectedPlanConfig.period,
+        interval: selectedPlanConfig.interval,
+        item: selectedPlanConfig.item
+      }),
+    });
+
+    if (!planResponse.ok) {
+      const error = await planResponse.text();
+      throw new Error(`Razorpay Plan creation error: ${error}`);
+    }
+
+    const plan = await planResponse.json();
     
+    // Now create a subscription using the plan ID
     const subscriptionResponse = await fetch('https://api.razorpay.com/v1/subscriptions', {
       method: 'POST',
       headers: {
@@ -62,7 +83,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        plan_id: selectedPlan,
+        plan_id: plan.id,
         customer_notify: 1,
         quantity: 1,
         total_count: 12, // 12 months
