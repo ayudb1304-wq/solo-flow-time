@@ -9,6 +9,7 @@ import { FileText, Eye, DollarSign, Download, Edit, Trash2 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { InvoicePreviewEditor } from "@/components/InvoicePreviewEditor";
 import jsPDF from 'jspdf';
@@ -35,6 +36,7 @@ export const InvoicesPage = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { checkLimit } = useSubscription();
 
   useEffect(() => {
     if (user) {
@@ -123,6 +125,17 @@ export const InvoicesPage = () => {
   };
 
   const downloadInvoicePDF = (invoice: Invoice) => {
+    // Check if PDF export is allowed
+    const limitCheck = checkLimit('canExportPDF');
+    if (!limitCheck.allowed) {
+      toast({
+        title: "Feature Not Available",
+        description: limitCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const doc = new jsPDF();
     
     // Add invoice content
@@ -275,6 +288,7 @@ export const InvoicesPage = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => downloadInvoicePDF(invoice)}
+                          disabled={!checkLimit('canExportPDF').allowed}
                         >
                           <Download className="h-4 w-4 mr-1" />
                           PDF

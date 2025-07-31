@@ -19,6 +19,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface Client {
   id: string;
@@ -75,6 +76,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { checkLimit } = useSubscription();
   useEffect(() => {
     if (user) {
       fetchAllData();
@@ -188,6 +190,17 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
 
   const handleAddProject = async () => {
     if (!newProjectName.trim() || !selectedClientId) return;
+
+    // Check subscription limits
+    const limitCheck = checkLimit('maxProjects', projects.length);
+    if (!limitCheck.allowed) {
+      toast({
+        title: "Limit Reached",
+        description: limitCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -321,7 +334,11 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
               </CardTitle>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    disabled={!checkLimit('maxProjects', projects.length).allowed}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     New Project
                   </Button>

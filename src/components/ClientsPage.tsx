@@ -9,6 +9,8 @@ import { Search, Plus, Trash2, Edit, Users, FolderOpen, Clock, Mail, MapPin } fr
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 interface Client {
   id: string;
@@ -30,6 +32,7 @@ export const ClientsPage = () => {
   });
   const { user } = useAuth();
   const { toast } = useToast();
+  const { checkLimit, plan } = useSubscription();
 
   useEffect(() => {
     if (user) {
@@ -64,6 +67,17 @@ export const ClientsPage = () => {
 
   const handleAddClient = async () => {
     if (!newClient.name || !newClient.email) return;
+
+    // Check subscription limits
+    const limitCheck = checkLimit('maxClients', clients.length);
+    if (!limitCheck.allowed) {
+      toast({
+        title: "Limit Reached",
+        description: limitCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -132,7 +146,10 @@ export const ClientsPage = () => {
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
+            <Button 
+              className="flex items-center gap-2"
+              disabled={!checkLimit('maxClients', clients.length).allowed}
+            >
               <Plus className="h-4 w-4" />
               Add Client
             </Button>
@@ -225,6 +242,14 @@ export const ClientsPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {!checkLimit('maxClients', clients.length).allowed && (
+        <UpgradePrompt
+          title="Client Limit Reached"
+          message={`You've reached the maximum of ${plan === 'trial' ? '3' : '25'} clients for your ${plan} plan. Upgrade to add more clients.`}
+          onUpgrade={() => window.location.href = '/#settings'}
+        />
+      )}
 
       {filteredClients.length === 0 ? (
         <Card>

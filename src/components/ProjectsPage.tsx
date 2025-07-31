@@ -9,6 +9,8 @@ import { Trash2, Plus, Eye, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 interface Client {
   id: string;
@@ -40,6 +42,7 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { checkLimit, plan } = useSubscription();
 
   useEffect(() => {
     if (user) {
@@ -94,6 +97,17 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
 
   const handleAddProject = async () => {
     if (!newProjectName.trim() || !selectedClientId) return;
+
+    // Check subscription limits
+    const limitCheck = checkLimit('maxProjects', projects.length);
+    if (!limitCheck.allowed) {
+      toast({
+        title: "Limit Reached",
+        description: limitCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -178,7 +192,10 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
         
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
+              <Button 
+                className="flex items-center gap-2"
+                disabled={!checkLimit('maxProjects', projects.length).allowed}
+              >
               <Plus className="h-4 w-4" />
               Add Project
             </Button>
@@ -220,6 +237,14 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
           </Dialog>
         </div>
       </div>
+
+      {!checkLimit('maxProjects', projects.length).allowed && (
+        <UpgradePrompt
+          title="Project Limit Reached"
+          message={`You've reached the maximum of ${plan === 'trial' ? '5' : '50'} projects for your ${plan} plan. Upgrade to add more projects.`}
+          onUpgrade={() => window.location.href = '/#settings'}
+        />
+      )}
 
       {filteredProjects.length === 0 && searchTerm ? (
         <Card>
