@@ -13,7 +13,10 @@ export const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => 
 
   return (
     <div className="min-h-screen bg-background">
-      <TopBar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <TopBar 
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
+        onPageChange={onPageChange}
+      />
       <div className="flex">
         <Sidebar 
           currentPage={currentPage} 

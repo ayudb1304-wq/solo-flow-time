@@ -8,9 +8,10 @@ import { useNavigate } from "react-router-dom";
 
 interface TopBarProps {
   onMenuClick?: () => void;
+  onPageChange?: (page: string) => void;
 }
 
-export const TopBar = ({ onMenuClick }: TopBarProps) => {
+export const TopBar = ({ onMenuClick, onPageChange }: TopBarProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -54,11 +55,11 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onPageChange?.('profile')}>
                 <User className="h-4 w-4 mr-2" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onPageChange?.('settings')}>
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </DropdownMenuItem>

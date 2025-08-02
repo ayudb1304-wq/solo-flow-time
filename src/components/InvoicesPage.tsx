@@ -286,16 +286,16 @@ export const InvoicesPage = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Invoices</h1>
-          <p className="text-muted-foreground">Manage your invoices and track payments</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Invoices</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Manage your invoices and track payments</p>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -335,43 +335,117 @@ export const InvoicesPage = () => {
         <CardHeader>
           <CardTitle>All Invoices</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 md:p-6">
           {invoices.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="text-center py-8 px-4">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No invoices yet</h3>
               <p className="text-muted-foreground">Start tracking time and generate your first invoice</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Issue Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Invoice #</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Issue Date</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invoices.map((invoice) => (
+                      <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                        <TableCell>{invoice.client_name}</TableCell>
+                        <TableCell>{invoice.projects.name}</TableCell>
+                        <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatCurrency(invoice.total_amount)}</TableCell>
+                        <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditInvoice(invoice)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              {invoice.status === 'draft' ? 'Edit' : 'View'}
+                            </Button>
+                            {invoice.status === 'sent' && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleMarkAsPaid(invoice.id)}
+                                disabled={markingPaid === invoice.id}
+                              >
+                                {markingPaid === invoice.id ? "Marking..." : "Mark Paid"}
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadInvoicePDF(invoice)}
+                              disabled={!checkLimit('canExportPDF').allowed}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              PDF
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteInvoice(invoice.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4 p-4">
                 {invoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
-                    <TableCell>{invoice.client_name}</TableCell>
-                    <TableCell>{invoice.projects.name}</TableCell>
-                    <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
-                    <TableCell>{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
-                    <TableCell>{formatCurrency(invoice.total_amount)}</TableCell>
-                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
+                  <Card key={invoice.id} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-sm">#{invoice.invoice_number}</h3>
+                          <p className="text-sm text-muted-foreground">{invoice.client_name}</p>
+                        </div>
+                        {getStatusBadge(invoice.status)}
+                      </div>
+                      
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Project:</span>
+                          <span>{invoice.projects.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Amount:</span>
+                          <span className="font-semibold">{formatCurrency(invoice.total_amount)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Due Date:</span>
+                          <span>{new Date(invoice.due_date).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 pt-2">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleEditInvoice(invoice)}
+                          className="flex-1 min-w-0"
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           {invoice.status === 'draft' ? 'Edit' : 'View'}
@@ -381,6 +455,7 @@ export const InvoicesPage = () => {
                             size="sm"
                             onClick={() => handleMarkAsPaid(invoice.id)}
                             disabled={markingPaid === invoice.id}
+                            className="flex-1 min-w-0"
                           >
                             {markingPaid === invoice.id ? "Marking..." : "Mark Paid"}
                           </Button>
@@ -391,8 +466,7 @@ export const InvoicesPage = () => {
                           onClick={() => downloadInvoicePDF(invoice)}
                           disabled={!checkLimit('canExportPDF').allowed}
                         >
-                          <Download className="h-4 w-4 mr-1" />
-                          PDF
+                          <Download className="h-4 w-4" />
                         </Button>
                         <Button
                           size="sm"
@@ -402,11 +476,11 @@ export const InvoicesPage = () => {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

@@ -63,6 +63,8 @@ const Index = () => {
         return <InvoicesPage />;
       case "settings":
         return <SettingsPage />;
+      case "profile":
+        return <SettingsPage />;
       default:
         return <Dashboard onProjectSelect={handleProjectSelect} />;
     }
