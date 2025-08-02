@@ -5,6 +5,7 @@ import { Timer, User, Bell, LogOut, Settings, Menu } from "lucide-react";
 import { useAuth } from "./auth/AuthProvider";
 import { SubscriptionBadge } from "./SubscriptionBadge";
 import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/hooks/useProfile";
 
 interface TopBarProps {
   onMenuClick?: () => void;
@@ -13,6 +14,7 @@ interface TopBarProps {
 
 export const TopBar = ({ onMenuClick, onPageChange }: TopBarProps) => {
   const { user, logout } = useAuth();
+  const { profile } = useProfile();
   const navigate = useNavigate();
 
   return (
@@ -51,7 +53,9 @@ export const TopBar = ({ onMenuClick, onPageChange }: TopBarProps) => {
                     {user?.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="hidden sm:block text-sm font-medium">{user?.email?.split('@')[0]}</span>
+                <span className="hidden sm:block text-sm font-medium">
+                  {profile?.freelancer_name || user?.email?.split('@')[0] || 'User'}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
