@@ -13,6 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useCurrency } from "@/hooks/useCurrency";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
+import { InvoicePreviewEditor } from "@/components/InvoicePreviewEditor";
 import jsPDF from 'jspdf';
 
 interface Project {
@@ -42,12 +43,17 @@ interface TimeEntry {
 interface Invoice {
   id: string;
   invoice_number: string;
+  client_name: string;
+  client_address: string | null;
   total_amount: number;
   status: string;
   issue_date: string;
   due_date: string;
   created_at: string;
-  hourly_rate?: number;
+  hourly_rate: number;
+  projects: {
+    name: string;
+  };
 }
 
 interface ProjectDetailPageProps {
@@ -65,6 +71,8 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
   const [activeTimer, setActiveTimer] = useState<string | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
@@ -163,7 +171,12 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
     try {
       const { data, error } = await supabase
         .from('invoices')
-        .select('*')
+        .select(`
+          *,
+          projects (
+            name
+          )
+        `)
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
@@ -392,6 +405,11 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setIsPreviewOpen(true);
   };
 
   const downloadInvoicePDF = async (invoice: Invoice) => {
@@ -734,9 +752,10 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => handleEditInvoice(invoice)}
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          View
+                          {invoice.status === 'draft' ? 'Edit' : 'View'}
                         </Button>
                         {invoice.status === 'sent' && (
                           <Button
@@ -771,6 +790,19 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
           )}
         </CardContent>
       </Card>
+
+      {/* Invoice Preview Editor */}
+      {selectedInvoice && (
+        <InvoicePreviewEditor
+          invoice={selectedInvoice}
+          isOpen={isPreviewOpen}
+          onClose={() => {
+            setIsPreviewOpen(false);
+            setSelectedInvoice(null);
+          }}
+          onUpdate={fetchInvoices}
+        />
+      )}
     </div>
   );
 };
