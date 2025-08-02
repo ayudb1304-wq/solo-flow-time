@@ -116,6 +116,26 @@ export const SettingsPage = () => {
         description: "Complete your payment to upgrade your plan",
       });
 
+      // For testing: simulate subscription activation after 5 seconds
+      setTimeout(async () => {
+        try {
+          await supabase.functions.invoke('test-subscription-update', {
+            body: { 
+              userId: user?.id, 
+              plan: planId 
+            }
+          });
+          toast({
+            title: "Success",
+            description: `Upgraded to ${planId} plan successfully!`,
+          });
+          // Refresh the page to update subscription status
+          window.location.reload();
+        } catch (error) {
+          console.error('Error updating subscription:', error);
+        }
+      }, 5000);
+
     } catch (error) {
       toast({
         title: "Error",

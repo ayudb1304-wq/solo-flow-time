@@ -23,11 +23,15 @@ serve(async (req) => {
     console.log('Webhook received:', webhookData);
 
     // Handle different webhook events
-    if (webhookData.event === 'subscription.activated') {
+    if (webhookData.event === 'subscription.activated' || webhookData.event === 'payment.captured') {
       const { payload } = webhookData;
-      const subscription = payload.subscription.entity;
+      const subscription = payload.subscription?.entity || payload.payment?.entity;
       const userId = subscription.notes?.user_id;
       const plan = subscription.notes?.plan;
+
+      console.log('Processing webhook event:', webhookData.event);
+      console.log('User ID:', userId);
+      console.log('Plan:', plan);
 
       if (userId && plan) {
         // Update user subscription status
@@ -45,6 +49,8 @@ serve(async (req) => {
         }
 
         console.log(`Updated user ${userId} to ${plan} plan`);
+      } else {
+        console.log('Missing userId or plan in webhook data');
       }
     }
 
