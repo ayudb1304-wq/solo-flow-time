@@ -49,7 +49,17 @@ export const TopBar = () => {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout} className="text-destructive">
+              <DropdownMenuItem 
+                onClick={async () => {
+                  try {
+                    await logout();
+                  } catch (error) {
+                    // Error is already handled in AuthProvider
+                    console.warn('Logout handled in AuthProvider');
+                  }
+                }} 
+                className="text-destructive"
+              >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </DropdownMenuItem>

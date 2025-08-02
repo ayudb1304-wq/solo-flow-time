@@ -10,6 +10,7 @@ interface AuthContextType {
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
+  isSessionValid: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,24 +31,87 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSessionValid, setIsSessionValid] = useState(false);
   const { toast } = useToast();
+
+  // Helper function to check if session is valid and not expired
+  const checkSessionValidity = (session: Session | null): boolean => {
+    if (!session) return false;
+    
+    const now = Date.now() / 1000;
+    const expiresAt = session.expires_at || 0;
+    
+    return expiresAt > now;
+  };
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change:', event, session ? 'session exists' : 'no session');
+        
+        const isValid = checkSessionValidity(session);
+        
         setSession(session);
         setUser(session?.user ?? null);
+        setIsSessionValid(isValid);
         setLoading(false);
+        
+        // Handle session expiry or invalid session
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          if (!session || !isValid) {
+            // Clear any stale data when signed out or session invalid
+            setSession(null);
+            setUser(null);
+            setIsSessionValid(false);
+          }
+        }
+        
+        // Auto-logout if session is expired
+        if (session && !isValid) {
+          console.warn('Session expired, clearing auth state');
+          setSession(null);
+          setUser(null);
+          setIsSessionValid(false);
+        }
       }
     );
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Get initial session with error handling
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.warn('Error getting initial session:', error);
+          setSession(null);
+          setUser(null);
+          setIsSessionValid(false);
+        } else {
+          const isValid = checkSessionValidity(session);
+          setSession(session);
+          setUser(session?.user ?? null);
+          setIsSessionValid(isValid);
+          
+          // If session exists but is expired, clear it
+          if (session && !isValid) {
+            console.warn('Initial session expired, clearing');
+            setSession(null);
+            setUser(null);
+            setIsSessionValid(false);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to initialize auth:', error);
+        setSession(null);
+        setUser(null);
+        setIsSessionValid(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -98,25 +162,46 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
+    try {
+      // First clear local state immediately to prevent UI issues
+      setSession(null);
+      setUser(null);
+      setIsSessionValid(false);
+      
+      // Then attempt to sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      // Don't throw an error if session doesn't exist - user is already logged out
+      if (error && !error.message.includes('session_not_found') && !error.message.includes('Session not found')) {
+        console.warn('Logout warning:', error.message);
+        toast({
+          title: "Logout warning",
+          description: "You have been logged out locally, but there may have been an issue with the server.",
+          variant: "default",
+        });
+        return;
+      }
 
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error: any) {
+      // Even if logout fails, clear the local state
+      setSession(null);
+      setUser(null);
+      setIsSessionValid(false);
+      
+      console.warn('Logout error:', error);
+      toast({
+        title: "Logged out",
+        description: "You have been logged out locally.",
+      });
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, session, login, register, logout, loading, isSessionValid }}>
       {children}
     </AuthContext.Provider>
   );
