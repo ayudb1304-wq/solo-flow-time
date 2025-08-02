@@ -35,6 +35,7 @@ export const InvoicesPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [markingPaid, setMarkingPaid] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
@@ -72,6 +73,7 @@ export const InvoicesPage = () => {
   };
 
   const handleMarkAsPaid = async (invoiceId: string) => {
+    setMarkingPaid(invoiceId);
     try {
       const { error } = await supabase
         .from('invoices')
@@ -92,6 +94,8 @@ export const InvoicesPage = () => {
         description: "Failed to update invoice",
         variant: "destructive",
       });
+    } finally {
+      setMarkingPaid(null);
     }
   };
 
@@ -376,8 +380,9 @@ export const InvoicesPage = () => {
                           <Button
                             size="sm"
                             onClick={() => handleMarkAsPaid(invoice.id)}
+                            disabled={markingPaid === invoice.id}
                           >
-                            Mark Paid
+                            {markingPaid === invoice.id ? "Marking..." : "Mark Paid"}
                           </Button>
                         )}
                         <Button

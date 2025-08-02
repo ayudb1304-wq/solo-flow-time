@@ -99,6 +99,8 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
         .not('end_time', 'is', null)
         .order('start_time');
 
+      console.log('Time entries query result:', { timeData, timeError, projectId });
+
       if (timeError) throw timeError;
       setTimeEntries(timeData || []);
     } catch (error) {
