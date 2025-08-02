@@ -115,20 +115,13 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
             The all-in-one platform for freelancers and agencies to track time, manage clients, 
             and generate professional invoices. Focus on what you do best while we handle the rest.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Button 
               onClick={onGetStarted}
               size="lg" 
               className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90"
             >
               Start Free Trial
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6"
-            >
-              Watch Demo
             </Button>
           </div>
         </div>
