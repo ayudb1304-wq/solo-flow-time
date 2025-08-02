@@ -15,6 +15,9 @@ interface Profile {
   freelancer_name: string | null;
   company_address: string | null;
   subscription_status: string | null;
+  subscription_cancel_at_period_end: boolean | null;
+  subscription_period_end: string | null;
+  created_at: string;
 }
 
 export const SettingsPage = () => {
@@ -148,7 +151,7 @@ export const SettingsPage = () => {
   };
 
   const handleCancelSubscription = async () => {
-    if (!confirm('Are you sure you want to cancel your subscription? You will lose access to premium features.')) {
+    if (!confirm('Are you sure you want to cancel your subscription? You will continue to have access to premium features until the end of your current billing period.')) {
       return;
     }
 
@@ -159,12 +162,12 @@ export const SettingsPage = () => {
       if (error) throw error;
 
       toast({
-        title: "Subscription Cancelled",
-        description: "Your subscription has been cancelled successfully.",
+        title: "Subscription Scheduled for Cancellation",
+        description: "You'll continue to have access until the end of your billing period.",
       });
 
       // Refresh to update the UI
-      window.location.reload();
+      fetchProfile();
 
     } catch (error) {
       toast({
@@ -383,19 +386,22 @@ export const SettingsPage = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">User ID</Label>
-                <p className="text-sm font-mono bg-muted p-2 rounded">{user?.id}</p>
-              </div>
-              <div>
                 <Label className="text-sm font-medium text-muted-foreground">Account Created</Label>
                 <p className="text-sm bg-muted p-2 rounded">
-                  {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
+                  {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}
                 </p>
               </div>
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">Subscription Status</Label>
+                <Label className="text-sm font-medium text-muted-foreground">Plan Status</Label>
                 <p className="text-sm bg-muted p-2 rounded capitalize">
                   {profile?.subscription_status || "trial"}
+                  {profile?.subscription_cancel_at_period_end && " (Cancelling)"}
+                </p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Email Verified</Label>
+                <p className="text-sm bg-muted p-2 rounded">
+                  {user?.email_confirmed_at ? "Yes" : "No"}
                 </p>
               </div>
             </div>

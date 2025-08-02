@@ -25,27 +25,32 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    console.log('Cancelling subscription for user:', user.id);
+    console.log('Scheduling subscription cancellation for user:', user.id);
 
-    // In test mode, we'll just update the database directly
-    // In production, you would call Razorpay API to cancel the subscription
+    // Calculate period end (30 days from now for testing)
+    const periodEnd = new Date();
+    periodEnd.setDate(periodEnd.getDate() + 30);
+
+    // In test mode, we'll schedule cancellation at period end
+    // In production, you would call Razorpay API to schedule cancellation
     const { error } = await supabaseClient
       .from('profiles')
       .update({
-        subscription_status: 'trial',
+        subscription_cancel_at_period_end: true,
+        subscription_period_end: periodEnd.toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error cancelling subscription:', error);
+      console.error('Error scheduling cancellation:', error);
       throw error;
     }
 
-    console.log(`Cancelled subscription for user ${user.id}`);
+    console.log(`Scheduled cancellation for user ${user.id} at period end`);
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Subscription cancelled successfully' }),
+      JSON.stringify({ success: true, message: 'Subscription scheduled for cancellation at period end' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,

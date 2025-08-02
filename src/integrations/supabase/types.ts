@@ -107,6 +107,8 @@ export type Database = {
           freelancer_name: string | null
           id: string
           stripe_customer_id: string | null
+          subscription_cancel_at_period_end: boolean | null
+          subscription_period_end: string | null
           subscription_status: string | null
           updated_at: string
           user_id: string
@@ -117,6 +119,8 @@ export type Database = {
           freelancer_name?: string | null
           id?: string
           stripe_customer_id?: string | null
+          subscription_cancel_at_period_end?: boolean | null
+          subscription_period_end?: string | null
           subscription_status?: string | null
           updated_at?: string
           user_id: string
@@ -127,6 +131,8 @@ export type Database = {
           freelancer_name?: string | null
           id?: string
           stripe_customer_id?: string | null
+          subscription_cancel_at_period_end?: boolean | null
+          subscription_period_end?: string | null
           subscription_status?: string | null
           updated_at?: string
           user_id?: string
