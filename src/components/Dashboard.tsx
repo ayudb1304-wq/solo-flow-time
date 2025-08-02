@@ -37,6 +37,13 @@ interface Project {
   clients: {
     name: string;
   };
+  completionPercentage?: number;
+}
+
+interface Task {
+  id: string;
+  project_id: string;
+  status: string;
 }
 
 interface TimeEntry {
@@ -65,6 +72,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState({
     totalHours: 0,
     activeProjects: 0,
@@ -93,6 +101,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
         fetchClients(),
         fetchTimeEntries(),
         fetchInvoices(),
+        fetchTasks(),
       ]);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -119,6 +128,27 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
     } catch (error) {
       console.error('Error fetching projects:', error);
     }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('id, project_id, status');
+
+      if (error) throw error;
+      setTasks(data || []);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
+  };
+
+  const calculateProjectCompletion = (projectId: string) => {
+    const projectTasks = tasks.filter(task => task.project_id === projectId);
+    if (projectTasks.length === 0) return 0;
+    
+    const completedTasks = projectTasks.filter(task => task.status === 'done');
+    return Math.round((completedTasks.length / projectTasks.length) * 100);
   };
 
   const fetchClients = async () => {
@@ -424,10 +454,14 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
                     
                     <div className="flex items-center justify-between mt-4">
                       <div className="flex-1 mr-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs text-muted-foreground">Progress</span>
+                          <span className="text-xs font-medium">{calculateProjectCompletion(project.id)}%</span>
+                        </div>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div 
                             className="bg-primary h-2 rounded-full transition-all duration-300"
-                            style={{ width: `30%` }}
+                            style={{ width: `${calculateProjectCompletion(project.id)}%` }}
                           />
                         </div>
                       </div>
