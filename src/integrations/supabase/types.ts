@@ -180,6 +180,53 @@ export type Database = {
           },
         ]
       }
+      task_attachments: {
+        Row: {
+          attachment_type: string
+          created_at: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          name: string
+          task_id: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          attachment_type: string
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          task_id: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          attachment_type?: string
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          task_id?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           created_at: string
