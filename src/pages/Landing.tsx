@@ -267,7 +267,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
             <div>
               <h4 className="font-semibold mb-4">Connect</h4>
               <p className="text-muted-foreground text-sm">
-                support@soloflow.pro
+                abhiogade@gmail.com
               </p>
             </div>
           </div>
