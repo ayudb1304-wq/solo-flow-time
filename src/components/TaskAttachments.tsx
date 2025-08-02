@@ -118,6 +118,12 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
   const handleLinkAdd = async () => {
     if (!linkName.trim() || !linkUrl.trim() || !user) return;
 
+    // Ensure URL has proper protocol
+    let formattedUrl = linkUrl.trim();
+    if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+      formattedUrl = 'https://' + formattedUrl;
+    }
+
     try {
       const { error } = await supabase
         .from('task_attachments')
@@ -126,7 +132,7 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
           user_id: user.id,
           attachment_type: 'link',
           name: linkName,
-          url: linkUrl
+          url: formattedUrl
         });
 
       if (error) throw error;
@@ -270,7 +276,7 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
           {attachments.map((attachment) => (
             <div
               key={attachment.id}
-              className="flex items-center justify-between p-2 bg-muted/50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-card border rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 {attachment.attachment_type === 'file' ? (
