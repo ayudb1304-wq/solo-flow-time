@@ -550,15 +550,15 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={onBack}>
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+        <Button variant="ghost" onClick={onBack} className="self-start">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Projects
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
-          <p className="text-muted-foreground">Client: {project.clients.name}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">{project.name}</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Client: {project.clients.name}</p>
         </div>
       </div>
 
@@ -571,72 +571,91 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder="Add a new task..."
               value={newTaskDescription}
               onChange={(e) => setNewTaskDescription(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
+              className="flex-1"
             />
-            <Button onClick={handleAddTask} disabled={!newTaskDescription.trim()}>
-              <Plus className="h-4 w-4" />
+            <Button onClick={handleAddTask} disabled={!newTaskDescription.trim()} className="sm:w-auto">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Add</span>
             </Button>
           </div>
 
           <div className="space-y-2">
             {tasks.map((task) => (
               <Collapsible key={task.id}>
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2 sm:gap-3 p-3 bg-muted/50 rounded-lg">
                   <input
                     type="checkbox"
                     checked={task.status === 'done'}
                     onChange={() => handleToggleTask(task.id, task.status)}
-                    className="w-4 h-4"
+                    className="w-4 h-4 flex-shrink-0"
                   />
-                  <span className={`flex-1 ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                  <span className={`flex-1 text-sm sm:text-base ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
                     {task.description}
                   </span>
-                  <CollapsibleTrigger asChild>
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => toggleTaskExpansion(task.id)}
+                        className="text-muted-foreground p-1 sm:p-2"
+                      >
+                        {expandedTasks.has(task.id) ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    {task.status === 'todo' && (
+                      <Button
+                        size="sm"
+                        variant={activeTimer === task.id ? "destructive" : "outline"}
+                        onClick={() => activeTimer === task.id ? handleStopTimer() : handleStartTimer(task.id, task.description)}
+                        className="hidden sm:flex"
+                      >
+                        {activeTimer === task.id ? (
+                          <>
+                            <Square className="h-4 w-4 mr-1" />
+                            Stop
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-1" />
+                            Start
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {task.status === 'todo' && (
+                      <Button
+                        size="sm"
+                        variant={activeTimer === task.id ? "destructive" : "outline"}
+                        onClick={() => activeTimer === task.id ? handleStopTimer() : handleStartTimer(task.id, task.description)}
+                        className="sm:hidden p-1"
+                      >
+                        {activeTimer === task.id ? (
+                          <Square className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => toggleTaskExpansion(task.id)}
-                      className="text-muted-foreground"
+                      onClick={() => handleDeleteTask(task.id)}
+                      className="text-muted-foreground hover:text-destructive p-1 sm:p-2"
                     >
-                      {expandedTasks.has(task.id) ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  </CollapsibleTrigger>
-                  {task.status === 'todo' && (
-                    <Button
-                      size="sm"
-                      variant={activeTimer === task.id ? "destructive" : "outline"}
-                      onClick={() => activeTimer === task.id ? handleStopTimer() : handleStartTimer(task.id, task.description)}
-                    >
-                      {activeTimer === task.id ? (
-                        <>
-                          <Square className="h-4 w-4 mr-1" />
-                          Stop
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-4 w-4 mr-1" />
-                          Start
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDeleteTask(task.id)}
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </div>
                 </div>
                 <CollapsibleContent>
                   <div className="ml-7 mr-3 mb-3 p-3 bg-background border rounded-lg">
@@ -651,62 +670,99 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
 
       {/* Time Entries Section */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
             Time Entries
           </CardTitle>
           {unInvoicedEntries.length > 0 && (
-            <Button onClick={() => onGenerateInvoice(projectId)} className="flex items-center gap-2">
+            <Button onClick={() => onGenerateInvoice(projectId)} className="flex items-center gap-2 w-full sm:w-auto">
               <FileText className="h-4 w-4" />
               Generate Invoice
             </Button>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 md:p-6">
           {timeEntries.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No time entries yet. Start a timer to begin tracking.</p>
+            <p className="text-muted-foreground text-center py-8 px-4">No time entries yet. Start a timer to begin tracking.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {timeEntries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell>{entry.task_description}</TableCell>
+                        <TableCell>{new Date(entry.start_time).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {entry.end_time ? (
+                            formatDuration(entry.duration_seconds)
+                          ) : (
+                            <span className="text-primary">Running...</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {entry.invoice_id ? (
+                            <span className="text-sm bg-accent text-accent-foreground px-2 py-1 rounded">
+                              Invoiced
+                            </span>
+                          ) : entry.end_time ? (
+                            <span className="text-sm bg-secondary text-secondary-foreground px-2 py-1 rounded">
+                              Pending
+                            </span>
+                          ) : (
+                            <span className="text-sm bg-primary text-primary-foreground px-2 py-1 rounded">
+                              Active
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-3 p-4">
                 {timeEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>{entry.task_description}</TableCell>
-                    <TableCell>{new Date(entry.start_time).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      {entry.end_time ? (
-                        formatDuration(entry.duration_seconds)
-                      ) : (
-                        <span className="text-primary">Running...</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {entry.invoice_id ? (
-                        <span className="text-sm bg-accent text-accent-foreground px-2 py-1 rounded">
-                          Invoiced
+                  <Card key={entry.id} className="p-3">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start gap-2">
+                        <p className="text-sm font-medium truncate flex-1">{entry.task_description}</p>
+                        <div className="flex-shrink-0">
+                          {entry.invoice_id ? (
+                            <Badge variant="secondary" className="text-xs">Invoiced</Badge>
+                          ) : entry.end_time ? (
+                            <Badge variant="outline" className="text-xs">Pending</Badge>
+                          ) : (
+                            <Badge className="text-xs">Active</Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{new Date(entry.start_time).toLocaleDateString()}</span>
+                        <span>
+                          {entry.end_time ? (
+                            formatDuration(entry.duration_seconds)
+                          ) : (
+                            <span className="text-primary font-medium">Running...</span>
+                          )}
                         </span>
-                      ) : entry.end_time ? (
-                        <span className="text-sm bg-secondary text-secondary-foreground px-2 py-1 rounded">
-                          Pending
-                        </span>
-                      ) : (
-                        <span className="text-sm bg-primary text-primary-foreground px-2 py-1 rounded">
-                          Active
-                        </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                      </div>
+                    </div>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -719,40 +775,112 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
             Invoices ({invoices.length})
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 md:p-6">
           {invoices.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No invoices created yet.</p>
+            <p className="text-muted-foreground text-center py-8 px-4">No invoices created yet.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Issue Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Invoice #</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Issue Date</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invoices.map((invoice) => (
+                      <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-4 w-4" />
+                            {formatCurrency(invoice.total_amount)}
+                          </div>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                        <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditInvoice(invoice)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              {invoice.status === 'draft' ? 'Edit' : 'View'}
+                            </Button>
+                            {invoice.status === 'sent' && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleMarkAsPaid(invoice.id)}
+                              >
+                                Mark Paid
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => downloadInvoicePDF(invoice)}
+                              disabled={!checkLimit('canExportPDF').allowed}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              PDF
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteInvoice(invoice.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4 p-4">
                 {invoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4" />
-                        {formatCurrency(invoice.total_amount)}
+                  <Card key={invoice.id} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-sm">#{invoice.invoice_number}</h3>
+                          <div className="flex items-center gap-1 mt-1">
+                            <DollarSign className="h-4 w-4" />
+                            <span className="font-medium">{formatCurrency(invoice.total_amount)}</span>
+                          </div>
+                        </div>
+                        {getStatusBadge(invoice.status)}
                       </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                    <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
-                    <TableCell>{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
+                      
+                      <div className="space-y-1 text-xs text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Issue Date:</span>
+                          <span>{new Date(invoice.issue_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Due Date:</span>
+                          <span>{new Date(invoice.due_date).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 pt-2">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleEditInvoice(invoice)}
+                          className="flex-1 min-w-0"
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           {invoice.status === 'draft' ? 'Edit' : 'View'}
@@ -761,6 +889,7 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                           <Button
                             size="sm"
                             onClick={() => handleMarkAsPaid(invoice.id)}
+                            className="flex-1 min-w-0"
                           >
                             Mark Paid
                           </Button>
@@ -771,8 +900,7 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                           onClick={() => downloadInvoicePDF(invoice)}
                           disabled={!checkLimit('canExportPDF').allowed}
                         >
-                          <Download className="h-4 w-4 mr-1" />
-                          PDF
+                          <Download className="h-4 w-4" />
                         </Button>
                         <Button
                           size="sm"
@@ -782,11 +910,11 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
