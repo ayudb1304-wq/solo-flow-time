@@ -20,6 +20,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useCurrency } from "@/hooks/useCurrency";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface Client {
   id: string;
@@ -76,6 +78,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
   const { checkLimit } = useSubscription();
   useEffect(() => {
     if (user) {
@@ -255,7 +258,11 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
   };
 
   if (loading) {
-    return <div className="p-6">Loading dashboard...</div>;
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -312,7 +319,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Pending Revenue</p>
-                <p className="text-3xl font-bold text-foreground">${stats.pendingInvoices.toFixed(0)}</p>
+                <p className="text-3xl font-bold text-foreground">{formatCurrency(stats.pendingInvoices)}</p>
                 <p className="text-xs text-muted-foreground mt-1">From sent invoices</p>
               </div>
               <div className="h-12 w-12 bg-primary rounded-lg flex items-center justify-center">
@@ -494,7 +501,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Revenue</span>
-                <span className="font-semibold text-secondary">${stats.totalRevenue.toFixed(0)}</span>
+                <span className="font-semibold text-secondary">{formatCurrency(stats.totalRevenue)}</span>
               </div>
             </CardContent>
           </Card>

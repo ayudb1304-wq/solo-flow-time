@@ -9,6 +9,7 @@ import { FileText, Eye, DollarSign, Download, Edit, Trash2 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { useCurrency } from "@/hooks/useCurrency";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { InvoicePreviewEditor } from "@/components/InvoicePreviewEditor";
@@ -36,6 +37,7 @@ export const InvoicesPage = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
   const { checkLimit } = useSubscription();
 
   useEffect(() => {
@@ -148,7 +150,7 @@ export const InvoicesPage = () => {
     doc.text(`Project: ${invoice.projects.name}`, 20, 80);
     doc.text(`Issue Date: ${new Date(invoice.issue_date).toLocaleDateString()}`, 20, 95);
     doc.text(`Due Date: ${new Date(invoice.due_date).toLocaleDateString()}`, 20, 110);
-    doc.text(`Amount: $${invoice.total_amount.toFixed(2)}`, 20, 125);
+    doc.text(`Amount: ${formatCurrency(invoice.total_amount)}`, 20, 125);
     doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, 140);
     
     // Save the PDF
@@ -202,7 +204,7 @@ export const InvoicesPage = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">From paid invoices</p>
           </CardContent>
         </Card>
@@ -213,7 +215,7 @@ export const InvoicesPage = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${pendingRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(pendingRevenue)}</div>
             <p className="text-xs text-muted-foreground">From sent invoices</p>
           </CardContent>
         </Card>
@@ -264,7 +266,7 @@ export const InvoicesPage = () => {
                     <TableCell>{invoice.projects.name}</TableCell>
                     <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
-                    <TableCell>${invoice.total_amount.toFixed(2)}</TableCell>
+                    <TableCell>{formatCurrency(invoice.total_amount)}</TableCell>
                     <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">

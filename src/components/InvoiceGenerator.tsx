@@ -8,6 +8,7 @@ import { ArrowLeft, FileText, Send, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { useCurrency } from "@/hooks/useCurrency";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Project {
@@ -52,6 +53,7 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
   const [generating, setGenerating] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { formatCurrency, getCurrencySymbol } = useCurrency();
 
   useEffect(() => {
     if (user && projectId) {
@@ -230,7 +232,7 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="hourly-rate">Hourly Rate ($)</Label>
+                <Label htmlFor="hourly-rate">Hourly Rate ({getCurrencySymbol()})</Label>
                 <Input
                   id="hourly-rate"
                   type="number"
@@ -294,10 +296,10 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
                 </div>
                 <div className="md:text-right">
                   <p className="text-2xl font-bold text-primary">
-                    ${totalAmount.toFixed(2)}
+                    {formatCurrency(totalAmount)}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {totalHours.toFixed(2)} hours × ${hourlyRate}/hour
+                    {totalHours.toFixed(2)} hours × {getCurrencySymbol()}{hourlyRate}/hour
                   </p>
                 </div>
               </div>
@@ -323,7 +325,7 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
                           <TableCell>{new Date(entry.start_time).toLocaleDateString()}</TableCell>
                           <TableCell>{entry.task_description}</TableCell>
                           <TableCell>{formatDuration(entry.duration_seconds)}</TableCell>
-                          <TableCell className="text-right">${amount.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
                         </TableRow>
                       );
                     })}

@@ -7,7 +7,9 @@ import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import Index from "./pages/Index";
 import { Auth } from "./pages/Auth";
+import { Landing } from "./pages/Landing";
 import NotFound from "./pages/NotFound";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const queryClient = new QueryClient();
 
@@ -17,8 +19,8 @@ const AppContent = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-12 w-12 rounded-lg bg-gradient-primary mx-auto mb-4 animate-pulse"></div>
+        <div className="text-center space-y-4">
+          <LoadingSpinner size="lg" />
           <p className="text-muted-foreground">Loading SoloFlow...</p>
         </div>
       </div>
@@ -26,13 +28,22 @@ const AppContent = () => {
   }
 
   if (!user) {
-    return <Auth />;
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing onGetStarted={() => window.location.href = "/auth"} />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="*" element={<Landing onGetStarted={() => window.location.href = "/auth"} />} />
+        </Routes>
+      </BrowserRouter>
+    );
   }
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

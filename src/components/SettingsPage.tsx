@@ -5,10 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { User, Building, Settings, Crown, Zap, Star } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { User, Building, Settings, Crown, Zap, Star, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { useCurrency, CURRENCY_OPTIONS } from "@/hooks/useCurrency";
 
 interface Profile {
   id: string;
@@ -17,6 +20,7 @@ interface Profile {
   subscription_status: string | null;
   subscription_cancel_at_period_end: boolean | null;
   subscription_period_end: string | null;
+  currency: string | null;
   created_at: string;
 }
 
@@ -31,6 +35,7 @@ export const SettingsPage = () => {
   });
   const { user } = useAuth();
   const { toast } = useToast();
+  const { currency, updateCurrency } = useCurrency();
 
   useEffect(() => {
     if (user) {
@@ -49,10 +54,10 @@ export const SettingsPage = () => {
       if (error) throw error;
       
       setProfile(data);
-      setFormData({
-        freelancer_name: data.freelancer_name || "",
-        company_address: data.company_address || "",
-      });
+    setFormData({
+      freelancer_name: data.freelancer_name || "",
+      company_address: data.company_address || "",
+    });
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -100,6 +105,22 @@ export const SettingsPage = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleCurrencyChange = async (newCurrency: string) => {
+    const success = await updateCurrency(newCurrency);
+    if (success) {
+      toast({
+        title: "Success",
+        description: "Currency preference updated successfully",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to update currency preference",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleUpgrade = async (planId: 'pro' | 'business') => {
@@ -197,7 +218,11 @@ export const SettingsPage = () => {
   };
 
   if (loading) {
-    return <div className="p-6">Loading settings...</div>;
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -267,6 +292,33 @@ export const SettingsPage = () => {
             <Button onClick={handleSave} disabled={saving} className="w-full">
               {saving ? "Saving..." : "Save Company Info"}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Preferences
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Select value={currency} onValueChange={handleCurrencyChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 
@@ -399,9 +451,9 @@ export const SettingsPage = () => {
                 </p>
               </div>
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">Email Verified</Label>
+                <Label className="text-sm font-medium text-muted-foreground">Current Currency</Label>
                 <p className="text-sm bg-muted p-2 rounded">
-                  {user?.email_confirmed_at ? "Yes" : "No"}
+                  {CURRENCY_OPTIONS.find(opt => opt.value === currency)?.label || "USD"}
                 </p>
               </div>
             </div>

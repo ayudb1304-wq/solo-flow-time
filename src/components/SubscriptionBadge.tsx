@@ -6,7 +6,9 @@ export const SubscriptionBadge = () => {
   const { plan, loading } = useSubscription();
 
   if (loading) {
-    return <Badge variant="secondary" className="animate-pulse">Loading...</Badge>;
+    return <Badge variant="secondary" className="animate-pulse">
+      <div className="h-3 w-12 bg-muted-foreground/20 rounded animate-pulse" />
+    </Badge>;
   }
 
   const getPlanIcon = (plan: string) => {

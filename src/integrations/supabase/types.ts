@@ -104,6 +104,7 @@ export type Database = {
         Row: {
           company_address: string | null
           created_at: string
+          currency: string | null
           freelancer_name: string | null
           id: string
           stripe_customer_id: string | null
@@ -116,6 +117,7 @@ export type Database = {
         Insert: {
           company_address?: string | null
           created_at?: string
+          currency?: string | null
           freelancer_name?: string | null
           id?: string
           stripe_customer_id?: string | null
@@ -128,6 +130,7 @@ export type Database = {
         Update: {
           company_address?: string | null
           created_at?: string
+          currency?: string | null
           freelancer_name?: string | null
           id?: string
           stripe_customer_id?: string | null

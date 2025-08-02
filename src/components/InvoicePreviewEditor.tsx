@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useCurrency } from "@/hooks/useCurrency";
 import jsPDF from 'jspdf';
 
 interface Invoice {
@@ -47,6 +48,7 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
   });
   const [dueDateOpen, setDueDateOpen] = useState(false);
   const { toast } = useToast();
+  const { formatCurrency, getCurrencySymbol } = useCurrency();
 
   useEffect(() => {
     if (invoice) {
@@ -131,8 +133,8 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
     doc.text(`Project: ${invoice.projects.name}`, 20, 95);
     doc.text(`Issue Date: ${new Date(invoice.issue_date).toLocaleDateString()}`, 20, 110);
     doc.text(`Due Date: ${new Date(invoice.due_date).toLocaleDateString()}`, 20, 125);
-    doc.text(`Hourly Rate: $${invoice.hourly_rate.toFixed(2)}`, 20, 140);
-    doc.text(`Total Amount: $${invoice.total_amount.toFixed(2)}`, 20, 155);
+    doc.text(`Hourly Rate: ${getCurrencySymbol()}${invoice.hourly_rate.toFixed(2)}`, 20, 140);
+    doc.text(`Total Amount: ${formatCurrency(invoice.total_amount)}`, 20, 155);
     doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, 170);
     
     // Save the PDF
@@ -324,11 +326,11 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center mb-2">
                     <span>Hourly Rate:</span>
-                    <span>${(isEditing ? editForm.hourly_rate : invoice.hourly_rate).toFixed(2)}</span>
+                    <span>{getCurrencySymbol()}{(isEditing ? editForm.hourly_rate : invoice.hourly_rate).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-lg font-bold border-t pt-2">
                     <span>Total Amount:</span>
-                    <span>${(isEditing ? editForm.total_amount : invoice.total_amount).toFixed(2)}</span>
+                    <span>{formatCurrency(isEditing ? editForm.total_amount : invoice.total_amount)}</span>
                   </div>
                 </div>
               </div>
