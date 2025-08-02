@@ -149,14 +149,25 @@ export const SettingsPage = () => {
               plan: planId 
             }
           });
+          
+          const upgradeMessage = profile?.subscription_cancel_at_period_end 
+            ? `Reactivated ${planId} plan successfully! Cancellation has been removed.`
+            : `Upgraded to ${planId} plan successfully!`;
+            
           toast({
             title: "Success",
-            description: `Upgraded to ${planId} plan successfully!`,
+            description: upgradeMessage,
           });
+          
           // Refresh the page to update subscription status
           window.location.reload();
         } catch (error) {
           console.error('Error updating subscription:', error);
+          toast({
+            title: "Error",
+            description: "Payment processed but failed to update subscription. Please contact support.",
+            variant: "destructive",
+          });
         }
       }, 5000);
 
@@ -380,7 +391,15 @@ export const SettingsPage = () => {
 
             {/* Upgrade Options for Trial Users or Users with Cancelled Subscriptions */}
             {(profile?.subscription_status === 'trial' || profile?.subscription_cancel_at_period_end) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                {profile?.subscription_cancel_at_period_end && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-800 text-sm font-medium">
+                      💡 Reactivate your subscription to continue enjoying premium features beyond your current period.
+                    </p>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Pro Plan */}
                 <Card className="border-2 border-blue-200">
                   <CardHeader className="pb-4">
@@ -402,7 +421,7 @@ export const SettingsPage = () => {
                       disabled={upgrading}
                       className="w-full bg-blue-600 hover:bg-blue-700"
                     >
-                      {upgrading ? 'Processing...' : 'Upgrade to Pro'}
+                      {upgrading ? 'Processing...' : profile?.subscription_cancel_at_period_end ? 'Reactivate Pro Plan' : 'Upgrade to Pro'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -428,11 +447,12 @@ export const SettingsPage = () => {
                       disabled={upgrading}
                       className="w-full bg-purple-600 hover:bg-purple-700"
                     >
-                      {upgrading ? 'Processing...' : 'Upgrade to Business'}
+                      {upgrading ? 'Processing...' : profile?.subscription_cancel_at_period_end ? 'Reactivate Business Plan' : 'Upgrade to Business'}
                     </Button>
                   </CardContent>
                 </Card>
               </div>
+            </div>
             )}
 
             {/* Cancellation Notice */}

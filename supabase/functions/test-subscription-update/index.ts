@@ -21,11 +21,17 @@ serve(async (req) => {
 
     console.log('Manually updating subscription for user:', userId, 'to plan:', plan);
 
-    // Update user subscription status
+    // Calculate new period end date (30 days from now for demo purposes)
+    const periodEnd = new Date();
+    periodEnd.setDate(periodEnd.getDate() + 30);
+
+    // Update user subscription status - clear cancellation flags and set new plan
     const { error } = await supabaseClient
       .from('profiles')
       .update({
         subscription_status: plan,
+        subscription_cancel_at_period_end: false, // Clear cancellation flag
+        subscription_period_end: periodEnd.toISOString(), // Set new period end
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', userId);
