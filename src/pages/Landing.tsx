@@ -234,11 +234,45 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30 py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-muted-foreground">
-            © 2024 SoloFlow. All rights reserved.
-          </p>
+      <footer className="border-t bg-muted/30 py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">SoloFlow</h3>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                The complete project management solution for freelancers and solo entrepreneurs.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a></li>
+                <li><a href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a></li>
+                <li><a href="/shipping" className="text-muted-foreground hover:text-foreground transition-colors">Shipping Policy</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Support</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact Us</a></li>
+                <li><a href="/cancellation-refunds" className="text-muted-foreground hover:text-foreground transition-colors">Cancellation & Refunds</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Connect</h4>
+              <p className="text-muted-foreground text-sm">
+                support@soloflow.pro
+              </p>
+            </div>
+          </div>
+          <div className="border-t pt-8 text-center">
+            <p className="text-muted-foreground text-sm">© 2024 SoloFlow. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>

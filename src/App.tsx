@@ -9,6 +9,11 @@ import Index from "./pages/Index";
 import { Auth } from "./pages/Auth";
 import { Landing } from "./pages/Landing";
 import NotFound from "./pages/NotFound";
+import { TermsOfService } from "./pages/TermsOfService";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
+import { ContactUs } from "./pages/ContactUs";
+import { CancellationRefunds } from "./pages/CancellationRefunds";
+import { ShippingPolicy } from "./pages/ShippingPolicy";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const queryClient = new QueryClient();
@@ -33,6 +38,11 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Landing onGetStarted={() => window.location.href = "/auth"} />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
+          <Route path="/shipping" element={<ShippingPolicy />} />
           <Route path="*" element={<Landing onGetStarted={() => window.location.href = "/auth"} />} />
         </Routes>
       </BrowserRouter>
@@ -44,6 +54,11 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
+        <Route path="/shipping" element={<ShippingPolicy />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
