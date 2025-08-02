@@ -298,19 +298,18 @@ export const SettingsPage = () => {
 
             {/* Cancel Subscription for Active Plans */}
             {(profile?.subscription_status === 'pro' || profile?.subscription_status === 'business') && (
-              <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-                <h3 className="font-semibold text-destructive mb-2">Cancel Subscription</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Cancel your subscription and return to the trial plan. You'll lose access to premium features immediately.
-                </p>
-                <Button 
-                  onClick={handleCancelSubscription}
-                  disabled={upgrading}
-                  variant="destructive"
-                  className="w-full"
-                >
-                  {upgrading ? 'Cancelling...' : 'Cancel Subscription'}
-                </Button>
+              <div className="mt-6 pt-4 border-t">
+                <div className="text-right">
+                  <Button 
+                    onClick={handleCancelSubscription}
+                    disabled={upgrading}
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-destructive text-xs"
+                  >
+                    {upgrading ? 'Processing...' : 'Cancel subscription'}
+                  </Button>
+                </div>
               </div>
             )}
 
