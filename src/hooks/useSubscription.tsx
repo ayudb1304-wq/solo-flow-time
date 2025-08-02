@@ -74,13 +74,32 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('subscription_status')
+        .select('subscription_status, subscription_period_end, subscription_cancel_at_period_end')
         .eq('user_id', user?.id)
         .single();
 
       if (error) throw error;
       
-      setPlan(data.subscription_status as SubscriptionPlan || 'trial');
+      // Check if subscription has expired and should revert to trial
+      const currentStatus = data.subscription_status as SubscriptionPlan || 'trial';
+      const periodEnd = data.subscription_period_end;
+      const cancelAtPeriodEnd = data.subscription_cancel_at_period_end;
+      
+      // If subscription was cancelled and period has ended, revert to trial
+      if (cancelAtPeriodEnd && periodEnd && new Date(periodEnd) <= new Date() && currentStatus !== 'trial') {
+        await supabase
+          .from('profiles')
+          .update({ 
+            subscription_status: 'trial',
+            subscription_cancel_at_period_end: false,
+            subscription_period_end: null
+          })
+          .eq('user_id', user?.id);
+        
+        setPlan('trial');
+      } else {
+        setPlan(currentStatus);
+      }
     } catch (error) {
       console.error('Error fetching subscription status:', error);
       setPlan('trial');

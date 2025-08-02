@@ -338,21 +338,31 @@ export const SettingsPage = () => {
                 <div>
                   <h3 className="font-semibold capitalize">
                     {profile?.subscription_status || 'trial'} Plan
+                    {profile?.subscription_cancel_at_period_end && (
+                      <span className="text-orange-600 font-normal text-sm ml-2">(Cancelling)</span>
+                    )}
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {profile?.subscription_status === 'trial' && 'Limited features - Upgrade for full access'}
-                    {profile?.subscription_status === 'pro' && 'Unlimited clients & projects'}
-                    {profile?.subscription_status === 'business' && 'Everything + multi-user access'}
+                    {profile?.subscription_status === 'pro' && !profile?.subscription_cancel_at_period_end && 'Unlimited clients & projects'}
+                    {profile?.subscription_status === 'business' && !profile?.subscription_cancel_at_period_end && 'Everything + multi-user access'}
+                    {profile?.subscription_cancel_at_period_end && profile?.subscription_period_end && (
+                      <span className="text-orange-600">
+                        Active until {new Date(profile.subscription_period_end).toLocaleDateString()}
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
               <Badge variant="secondary" className={`${getPlanColor(profile?.subscription_status || 'trial')} text-white`}>
-                {profile?.subscription_status === 'trial' ? 'Free' : 'Active'}
+                {profile?.subscription_status === 'trial' ? 'Free' : 
+                 profile?.subscription_cancel_at_period_end ? 'Cancelling' : 'Active'}
               </Badge>
             </div>
 
             {/* Cancel Subscription for Active Plans */}
-            {(profile?.subscription_status === 'pro' || profile?.subscription_status === 'business') && (
+            {(profile?.subscription_status === 'pro' || profile?.subscription_status === 'business') && 
+             !profile?.subscription_cancel_at_period_end && (
               <div className="mt-6 pt-4 border-t">
                 <div className="text-right">
                   <Button 
@@ -368,8 +378,8 @@ export const SettingsPage = () => {
               </div>
             )}
 
-            {/* Upgrade Options */}
-            {profile?.subscription_status === 'trial' && (
+            {/* Upgrade Options for Trial Users or Users with Cancelled Subscriptions */}
+            {(profile?.subscription_status === 'trial' || profile?.subscription_cancel_at_period_end) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Pro Plan */}
                 <Card className="border-2 border-blue-200">
@@ -422,6 +432,27 @@ export const SettingsPage = () => {
                     </Button>
                   </CardContent>
                 </Card>
+              </div>
+            )}
+
+            {/* Cancellation Notice */}
+            {profile?.subscription_cancel_at_period_end && profile?.subscription_period_end && (
+              <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center mt-0.5">
+                    <span className="text-white text-xs">!</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-orange-800">Subscription Cancellation Scheduled</h4>
+                    <p className="text-orange-700 text-sm mt-1">
+                      Your subscription will remain active until <strong>{new Date(profile.subscription_period_end).toLocaleDateString()}</strong>. 
+                      After this date, your account will be automatically moved to the trial plan.
+                    </p>
+                    <p className="text-orange-600 text-xs mt-2">
+                      You can resubscribe at any time using the upgrade options above.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
