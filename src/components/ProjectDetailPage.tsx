@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Play, Square, Trash2, Plus, Clock, CheckCircle2, FileText } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, Plus, Clock, CheckCircle2, FileText, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TaskAttachments } from "@/components/TaskAttachments";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Project {
   id: string;
@@ -45,9 +47,20 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [activeTimer, setActiveTimer] = useState<string | null>(null);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  const toggleTaskExpansion = (taskId: string) => {
+    const newExpanded = new Set(expandedTasks);
+    if (newExpanded.has(taskId)) {
+      newExpanded.delete(taskId);
+    } else {
+      newExpanded.add(taskId);
+    }
+    setExpandedTasks(newExpanded);
+  };
 
   useEffect(() => {
     if (user && projectId) {
@@ -326,44 +339,65 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
 
           <div className="space-y-2">
             {tasks.map((task) => (
-              <div key={task.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <input
-                  type="checkbox"
-                  checked={task.status === 'done'}
-                  onChange={() => handleToggleTask(task.id, task.status)}
-                  className="w-4 h-4"
-                />
-                <span className={`flex-1 ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
-                  {task.description}
-                </span>
-                {task.status === 'todo' && (
+              <Collapsible key={task.id}>
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    checked={task.status === 'done'}
+                    onChange={() => handleToggleTask(task.id, task.status)}
+                    className="w-4 h-4"
+                  />
+                  <span className={`flex-1 ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                    {task.description}
+                  </span>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => toggleTaskExpansion(task.id)}
+                      className="text-muted-foreground"
+                    >
+                      {expandedTasks.has(task.id) ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  {task.status === 'todo' && (
+                    <Button
+                      size="sm"
+                      variant={activeTimer === task.id ? "destructive" : "outline"}
+                      onClick={() => activeTimer === task.id ? handleStopTimer() : handleStartTimer(task.id, task.description)}
+                    >
+                      {activeTimer === task.id ? (
+                        <>
+                          <Square className="h-4 w-4 mr-1" />
+                          Stop
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4 mr-1" />
+                          Start
+                        </>
+                      )}
+                    </Button>
+                  )}
                   <Button
                     size="sm"
-                    variant={activeTimer === task.id ? "destructive" : "outline"}
-                    onClick={() => activeTimer === task.id ? handleStopTimer() : handleStartTimer(task.id, task.description)}
+                    variant="ghost"
+                    onClick={() => handleDeleteTask(task.id)}
+                    className="text-muted-foreground hover:text-destructive"
                   >
-                    {activeTimer === task.id ? (
-                      <>
-                        <Square className="h-4 w-4 mr-1" />
-                        Stop
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4 mr-1" />
-                        Start
-                      </>
-                    )}
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleDeleteTask(task.id)}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+                </div>
+                <CollapsibleContent>
+                  <div className="ml-7 mr-3 mb-3 p-3 bg-background border rounded-lg">
+                    <TaskAttachments taskId={task.id} />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             ))}
           </div>
         </CardContent>
