@@ -1,19 +1,31 @@
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Timer, User, Bell, LogOut, Settings } from "lucide-react";
+import { Timer, User, Bell, LogOut, Settings, Menu } from "lucide-react";
 import { useAuth } from "./auth/AuthProvider";
 import { SubscriptionBadge } from "./SubscriptionBadge";
 import { useNavigate } from "react-router-dom";
 
-export const TopBar = () => {
+interface TopBarProps {
+  onMenuClick?: () => void;
+}
+
+export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   return (
     <header className="border-b border-border bg-card shadow-soft">
-      <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center space-x-4">
+      <div className="flex items-center justify-between px-3 md:px-6 py-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMenuClick}
+            className="md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           <button 
             onClick={() => navigate('/')} 
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
@@ -21,22 +33,24 @@ export const TopBar = () => {
             <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
               <Timer className="h-4 w-4 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">SoloFlow</h1>
+            <h1 className="text-lg md:text-xl font-bold text-foreground">SoloFlow</h1>
           </button>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <SubscriptionBadge />
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="hidden sm:block">
+            <SubscriptionBadge />
+          </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1 md:space-x-2">
+                <Avatar className="h-7 w-7 md:h-8 md:w-8">
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                     {user?.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium">{user?.email?.split('@')[0]}</span>
+                <span className="hidden sm:block text-sm font-medium">{user?.email?.split('@')[0]}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

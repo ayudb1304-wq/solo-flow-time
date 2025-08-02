@@ -104,29 +104,29 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
+      <section className="container mx-auto px-4 py-12 md:py-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-5xl font-bold text-foreground mb-6 leading-tight">
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             Streamline Your
             <span className="text-transparent bg-clip-text bg-gradient-primary"> Freelance</span>
             <br />Business
           </h2>
-          <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
             The all-in-one platform for freelancers and agencies to track time, manage clients, 
             and generate professional invoices. Focus on what you do best while we handle the rest.
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               onClick={onGetStarted}
               size="lg" 
-              className="text-lg px-8 py-6 bg-gradient-primary hover:opacity-90"
+              className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90"
             >
               Start Free Trial
             </Button>
             <Button 
               variant="outline" 
               size="lg"
-              className="text-lg px-8 py-6"
+              className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6"
             >
               Watch Demo
             </Button>
@@ -135,7 +135,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-20">
+      <section className="container mx-auto px-4 py-12 md:py-20">
         <div className="text-center mb-16">
           <h3 className="text-3xl font-bold text-foreground mb-4">
             Everything You Need to Succeed
@@ -145,7 +145,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {features.map((feature, index) => (
             <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="text-center pb-4">
@@ -165,7 +165,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Pricing Section */}
-      <section className="container mx-auto px-4 py-20">
+      <section className="container mx-auto px-4 py-12 md:py-20">
         <div className="text-center mb-16">
           <h3 className="text-3xl font-bold text-foreground mb-4">
             Simple, Transparent Pricing
@@ -175,7 +175,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
             <Card key={index} className={`${plan.color} relative overflow-hidden`}>
               {plan.popular && (
@@ -216,7 +216,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
+      <section className="container mx-auto px-4 py-12 md:py-20 text-center">
         <div className="max-w-3xl mx-auto">
           <h3 className="text-3xl font-bold text-foreground mb-6">
             Ready to Transform Your Business?
@@ -227,7 +227,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           <Button 
             onClick={onGetStarted}
             size="lg" 
-            className="text-lg px-8 py-6 bg-gradient-primary hover:opacity-90"
+            className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90"
           >
             Start Your Free Trial Today
           </Button>
@@ -237,7 +237,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       {/* Footer */}
       <footer className="border-t bg-muted/30 py-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">

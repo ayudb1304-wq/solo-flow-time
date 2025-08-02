@@ -298,7 +298,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <Card className="bg-gradient-to-br from-primary-light to-primary-light/50 border-primary/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -360,9 +360,9 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Active Projects */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -441,7 +441,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
                       </Badge>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Created</p>
                         <p className="font-medium">{new Date(project.created_at).toLocaleDateString()}</p>
