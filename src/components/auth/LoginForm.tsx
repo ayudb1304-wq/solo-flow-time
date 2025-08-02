@@ -29,13 +29,9 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
 
     try {
       await login(email, password);
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully logged in to SoloFlow.",
-      });
+      // No toast here - AuthProvider will handle it via onAuthStateChange
     } catch (err) {
       setError("Invalid email or password. Please try again.");
-    } finally {
       setLoading(false);
     }
   };

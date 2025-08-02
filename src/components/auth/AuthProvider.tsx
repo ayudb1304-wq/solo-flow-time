@@ -38,12 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        if (event === 'SIGNED_IN') {
-          toast({
-            title: "Welcome to SoloFlow!",
-            description: "You have successfully signed in.",
-          });
-        }
+        setLoading(false);
       }
     );
 
@@ -55,7 +50,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
 
     return () => subscription.unsubscribe();
-  }, [toast]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
