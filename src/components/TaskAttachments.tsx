@@ -294,7 +294,11 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => window.open(attachment.url, '_blank')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(attachment.url, '_blank');
+                  }}
                 >
                   {attachment.attachment_type === 'file' ? (
                     <Download className="h-4 w-4" />
