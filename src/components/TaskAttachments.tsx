@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Paperclip, Link2, Upload, Download, Trash2, ExternalLink } from "lucide-react";
+import { Paperclip, Link2, Upload, Download, Trash2, ExternalLink, Copy, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -31,6 +32,9 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
   const [uploading, setUploading] = useState(false);
   const [linkName, setLinkName] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<TaskAttachment | null>(null);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -155,21 +159,26 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
     }
   };
 
-  const handleDelete = async (attachment: TaskAttachment) => {
-    if (!confirm('Are you sure you want to delete this attachment?')) return;
+  const handleDeleteClick = (attachment: TaskAttachment) => {
+    setAttachmentToDelete(attachment);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!attachmentToDelete) return;
 
     try {
       // Delete from database
       const { error: dbError } = await supabase
         .from('task_attachments')
         .delete()
-        .eq('id', attachment.id);
+        .eq('id', attachmentToDelete.id);
 
       if (dbError) throw dbError;
 
       // If it's a file, also delete from storage
-      if (attachment.attachment_type === 'file') {
-        const urlParts = attachment.url.split('/');
+      if (attachmentToDelete.attachment_type === 'file') {
+        const urlParts = attachmentToDelete.url.split('/');
         const filePath = urlParts.slice(-3).join('/'); // Get the user_id/task_id/filename part
         
         await supabase.storage
@@ -187,6 +196,45 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
       toast({
         title: "Error",
         description: "Failed to delete attachment",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setAttachmentToDelete(null);
+    }
+  };
+
+  const handleCopyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedLink(url);
+      toast({
+        title: "Success",
+        description: "Link copied to clipboard",
+      });
+      setTimeout(() => setCopiedLink(null), 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownload = async (attachment: TaskAttachment) => {
+    try {
+      if (attachment.attachment_type === 'file') {
+        // For files, open in new tab to download
+        window.open(attachment.url, '_blank');
+      } else {
+        // For links, open the link
+        window.open(attachment.url, '_blank');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to open attachment",
         variant: "destructive",
       });
     }
@@ -270,41 +318,56 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
       </div>
 
       {attachments.length === 0 ? (
-        <div className="text-sm text-muted-foreground">No attachments yet</div>
+        <div className="text-sm text-muted-foreground text-center py-4">No attachments yet</div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {attachments.map((attachment) => (
             <div
               key={attachment.id}
-              className="flex items-center justify-between p-3 bg-card border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="flex items-center justify-between p-4 bg-card border rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
             >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                {attachment.attachment_type === 'file' ? (
-                  <Paperclip className="h-4 w-4 flex-shrink-0" />
-                ) : (
-                  <Link2 className="h-4 w-4 flex-shrink-0" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{attachment.name}</p>
-                  {attachment.file_size && (
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(attachment.file_size)}
-                    </p>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex-shrink-0 p-2 bg-primary/10 rounded-lg">
+                  {attachment.attachment_type === 'file' ? (
+                    <Paperclip className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Link2 className="h-4 w-4 text-primary" />
                   )}
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  {attachment.attachment_type}
-                </Badge>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{attachment.name}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {attachment.file_size && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatFileSize(attachment.file_size)}
+                      </span>
+                    )}
+                    <Badge variant="secondary" className="text-xs">
+                      {attachment.attachment_type}
+                    </Badge>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {attachment.attachment_type === 'link' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleCopyLink(attachment.url)}
+                    title="Copy link"
+                  >
+                    {copiedLink === attachment.url ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    window.open(attachment.url, '_blank');
-                  }}
+                  onClick={() => handleDownload(attachment)}
+                  title={attachment.attachment_type === 'file' ? 'Download file' : 'Open link'}
                 >
                   {attachment.attachment_type === 'file' ? (
                     <Download className="h-4 w-4" />
@@ -315,7 +378,9 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleDelete(attachment)}
+                  onClick={() => handleDeleteClick(attachment)}
+                  className="text-muted-foreground hover:text-destructive"
+                  title="Delete attachment"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -324,6 +389,24 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{attachmentToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

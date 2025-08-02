@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, FileText, Send, DollarSign } from "lucide-react";
+import { ArrowLeft, FileText, Send, DollarSign, Download } from "lucide-react";
+import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -140,6 +141,97 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
     }
 
     return `${new Date().getFullYear()}-001`;
+  };
+
+  const downloadInvoicePDF = async () => {
+    try {
+      const invoiceNumber = await generateInvoiceNumber();
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.text('INVOICE', 20, 30);
+      
+      // Invoice details
+      doc.setFontSize(12);
+      doc.text(`Invoice #: ${invoiceNumber}`, 20, 50);
+      doc.text(`Issue Date: ${new Date(issueDate).toLocaleDateString()}`, 20, 60);
+      doc.text(`Due Date: ${new Date(dueDate).toLocaleDateString()}`, 20, 70);
+      
+      // From section
+      doc.text('FROM:', 20, 90);
+      doc.setFontSize(10);
+      if (profile?.freelancer_name) {
+        doc.text(profile.freelancer_name, 20, 100);
+      }
+      if (profile?.company_address) {
+        const addressLines = profile.company_address.split('\n');
+        addressLines.forEach((line, index) => {
+          doc.text(line, 20, 110 + (index * 10));
+        });
+      }
+      
+      // To section
+      doc.setFontSize(12);
+      doc.text('TO:', 120, 90);
+      doc.setFontSize(10);
+      if (project?.clients.name) {
+        doc.text(project.clients.name, 120, 100);
+      }
+      if (project?.clients.address) {
+        const addressLines = project.clients.address.split('\n');
+        addressLines.forEach((line, index) => {
+          doc.text(line, 120, 110 + (index * 10));
+        });
+      }
+      
+      // Project name
+      doc.setFontSize(12);
+      doc.text(`Project: ${project?.name || 'N/A'}`, 20, 150);
+      
+      // Time entries table
+      doc.setFontSize(10);
+      let yPosition = 170;
+      doc.text('Date', 20, yPosition);
+      doc.text('Description', 50, yPosition);
+      doc.text('Duration', 130, yPosition);
+      doc.text('Amount', 170, yPosition);
+      
+      yPosition += 10;
+      doc.line(20, yPosition - 5, 190, yPosition - 5);
+      
+      timeEntries.forEach((entry) => {
+        const hours = entry.duration_seconds / 3600;
+        const amount = hours * parseFloat(hourlyRate);
+        
+        doc.text(new Date(entry.start_time).toLocaleDateString(), 20, yPosition);
+        doc.text(entry.task_description.substring(0, 30), 50, yPosition);
+        doc.text(formatDuration(entry.duration_seconds), 130, yPosition);
+        doc.text(formatCurrency(amount), 170, yPosition);
+        
+        yPosition += 10;
+      });
+      
+      // Total
+      yPosition += 10;
+      doc.line(20, yPosition - 5, 190, yPosition - 5);
+      doc.setFontSize(12);
+      doc.text(`Total: ${formatCurrency(totalAmount)}`, 170, yPosition + 10);
+      doc.text(`${totalHours.toFixed(2)} hours × ${getCurrencySymbol()}${hourlyRate}/hour`, 120, yPosition + 20);
+      
+      doc.save(`invoice-${invoiceNumber}.pdf`);
+      
+      toast({
+        title: "Success",
+        description: "Invoice PDF downloaded successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGenerateInvoice = async (status: 'draft' | 'sent') => {
@@ -343,6 +435,14 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
             <div className="flex gap-2">
               <Button
                 variant="outline"
+                onClick={downloadInvoicePDF}
+                disabled={generating}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => handleGenerateInvoice('draft')}
                 disabled={generating}
               >
@@ -354,7 +454,7 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
                 disabled={generating}
               >
                 <Send className="h-4 w-4 mr-2" />
-                Mark as Sent
+                Save & Mark as Sent
               </Button>
             </div>
           </div>

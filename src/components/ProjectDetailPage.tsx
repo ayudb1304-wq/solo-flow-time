@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Play, Square, Trash2, Plus, Clock, CheckCircle2, FileText, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, Plus, Clock, CheckCircle2, FileText, ChevronDown, ChevronRight, Receipt, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TaskAttachments } from "@/components/TaskAttachments";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useCurrency } from "@/hooks/useCurrency";
+import { Badge } from "@/components/ui/badge";
 
 interface Project {
   id: string;
@@ -35,6 +37,16 @@ interface TimeEntry {
   invoice_id: string | null;
 }
 
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  total_amount: number;
+  status: string;
+  issue_date: string;
+  due_date: string;
+  created_at: string;
+}
+
 interface ProjectDetailPageProps {
   projectId: string;
   onBack: () => void;
@@ -45,12 +57,14 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [activeTimer, setActiveTimer] = useState<string | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks);
@@ -67,6 +81,7 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
       fetchProjectDetails();
       fetchTasks();
       fetchTimeEntries();
+      fetchInvoices();
     }
   }, [user, projectId]);
 
@@ -137,6 +152,25 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInvoices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setInvoices(data || []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch invoices",
+        variant: "destructive",
+      });
     }
   };
 
@@ -291,6 +325,19 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>;
+      case 'sent':
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Sent</Badge>;
+      case 'draft':
+        return <Badge variant="secondary">Draft</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
   const unInvoicedEntries = timeEntries.filter(entry => !entry.invoice_id && entry.end_time);
@@ -457,6 +504,49 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                         </span>
                       )}
                     </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Invoices Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Receipt className="h-5 w-5" />
+            Invoices ({invoices.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {invoices.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No invoices created yet.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Issue Date</TableHead>
+                  <TableHead>Due Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-4 w-4" />
+                        {formatCurrency(invoice.total_amount)}
+                      </div>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                    <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
