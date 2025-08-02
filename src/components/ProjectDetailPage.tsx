@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Play, Square, Trash2, Plus, Clock, CheckCircle2, FileText, ChevronDown, ChevronRight, Receipt, DollarSign } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, Plus, Clock, CheckCircle2, FileText, ChevronDown, ChevronRight, Receipt, DollarSign, Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -12,6 +12,8 @@ import { TaskAttachments } from "@/components/TaskAttachments";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useCurrency } from "@/hooks/useCurrency";
 import { Badge } from "@/components/ui/badge";
+import { useSubscription } from "@/hooks/useSubscription";
+import jsPDF from 'jspdf';
 
 interface Project {
   id: string;
@@ -45,6 +47,7 @@ interface Invoice {
   issue_date: string;
   due_date: string;
   created_at: string;
+  hourly_rate?: number;
 }
 
 interface ProjectDetailPageProps {
@@ -65,6 +68,7 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
   const { user } = useAuth();
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
+  const { checkLimit } = useSubscription();
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks);
@@ -340,6 +344,183 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
     }
   };
 
+  const handleMarkAsPaid = async (invoiceId: string) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ status: 'paid' })
+        .eq('id', invoiceId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Invoice marked as paid",
+      });
+
+      fetchInvoices();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update invoice status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (!confirm('Are you sure you want to delete this invoice?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', invoiceId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Invoice deleted successfully",
+      });
+
+      fetchInvoices();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete invoice",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadInvoicePDF = async (invoice: Invoice) => {
+    // Check if PDF export is allowed
+    const limitCheck = checkLimit('canExportPDF');
+    if (!limitCheck.allowed) {
+      toast({
+        title: "Feature Not Available",
+        description: limitCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    
+    // Add header background
+    doc.setFillColor(59, 130, 246); // Blue background
+    doc.rect(0, 0, pageWidth, 50, 'F');
+    
+    // Invoice title
+    doc.setTextColor(255, 255, 255); // White text
+    doc.setFontSize(28);
+    doc.setFont(undefined, 'bold');
+    doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'normal');
+    doc.text(`#${invoice.invoice_number}`, pageWidth / 2, 40, { align: 'center' });
+    
+    // Reset text color for body
+    doc.setTextColor(0, 0, 0);
+    
+    // From and To sections
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('From:', 20, 70);
+    doc.setFont(undefined, 'normal');
+    doc.text('Your Company Name', 20, 82);
+    doc.text('Your Address', 20, 94);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('To:', 120, 70);
+    doc.setFont(undefined, 'normal');
+    doc.text(project?.clients.name || 'Client', 120, 82);
+    
+    // Project and dates section
+    doc.setFont(undefined, 'bold');
+    doc.text('Project:', 20, 120);
+    doc.setFont(undefined, 'normal');
+    doc.text(project?.name || 'N/A', 20, 132);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Issue Date:', 120, 120);
+    doc.setFont(undefined, 'normal');
+    doc.text(new Date(invoice.issue_date).toLocaleDateString(), 120, 132);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Due Date:', 120, 144);
+    doc.setFont(undefined, 'normal');
+    doc.text(new Date(invoice.due_date).toLocaleDateString(), 120, 156);
+    
+    // Add a line separator
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 170, pageWidth - 20, 170);
+    
+    // Services/billing section
+    doc.setFillColor(248, 250, 252); // Light gray background
+    doc.rect(20, 180, pageWidth - 40, 30, 'F');
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Description', 25, 195);
+    doc.text('Rate', 120, 195);
+    doc.text('Amount', 160, 195);
+    
+    doc.setFont(undefined, 'normal');
+    doc.text('Professional Services', 25, 205);
+    doc.text(`${formatCurrency(invoice.hourly_rate || 0)}/hr`, 120, 205);
+    doc.text(formatCurrency(invoice.total_amount), 160, 205);
+    
+    // Total section with colored background
+    doc.setFillColor(34, 197, 94); // Green background
+    doc.rect(20, 220, pageWidth - 40, 25, 'F');
+    
+    doc.setTextColor(255, 255, 255); // White text
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('Total Amount:', 25, 235);
+    doc.text(formatCurrency(invoice.total_amount), pageWidth - 25, 235, { align: 'right' });
+    
+    // Status badge
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    
+    // Different colors for different statuses
+    if (invoice.status === 'paid') {
+      doc.setFillColor(34, 197, 94); // Green
+      doc.setTextColor(255, 255, 255);
+    } else if (invoice.status === 'sent') {
+      doc.setFillColor(251, 191, 36); // Yellow
+      doc.setTextColor(0, 0, 0);
+    } else {
+      doc.setFillColor(156, 163, 175); // Gray
+      doc.setTextColor(255, 255, 255);
+    }
+    
+    const statusText = invoice.status.toUpperCase();
+    const statusWidth = doc.getTextWidth(statusText) + 10;
+    doc.rect(pageWidth - statusWidth - 20, 255, statusWidth, 15, 'F');
+    doc.text(statusText, pageWidth - statusWidth/2 - 20, 265, { align: 'center' });
+    
+    // Footer
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 20, { align: 'center' });
+    
+    // Save the PDF
+    doc.save(`invoice-${invoice.invoice_number}.pdf`);
+    
+    toast({
+      title: "Success",
+      description: "Invoice PDF downloaded successfully",
+    });
+  };
+
   const unInvoicedEntries = timeEntries.filter(entry => !entry.invoice_id && entry.end_time);
 
   if (loading) {
@@ -532,6 +713,7 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                   <TableHead>Status</TableHead>
                   <TableHead>Issue Date</TableHead>
                   <TableHead>Due Date</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -547,6 +729,41 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                     <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                     <TableCell>{new Date(invoice.issue_date).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(invoice.due_date).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        {invoice.status === 'sent' && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleMarkAsPaid(invoice.id)}
+                          >
+                            Mark Paid
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => downloadInvoicePDF(invoice)}
+                          disabled={!checkLimit('canExportPDF').allowed}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          PDF
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteInvoice(invoice.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

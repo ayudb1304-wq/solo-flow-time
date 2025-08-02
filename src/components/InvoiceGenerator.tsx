@@ -147,77 +147,121 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
     try {
       const invoiceNumber = await generateInvoiceNumber();
       const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
       
-      // Header
-      doc.setFontSize(20);
-      doc.text('INVOICE', 20, 30);
+      // Add header background
+      doc.setFillColor(59, 130, 246); // Blue background
+      doc.rect(0, 0, pageWidth, 50, 'F');
       
-      // Invoice details
+      // Invoice title
+      doc.setTextColor(255, 255, 255); // White text
+      doc.setFontSize(28);
+      doc.setFont(undefined, 'bold');
+      doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'normal');
+      doc.text(`#${invoiceNumber}`, pageWidth / 2, 40, { align: 'center' });
+      
+      // Reset text color for body
+      doc.setTextColor(0, 0, 0);
+      
+      // From and To sections
       doc.setFontSize(12);
-      doc.text(`Invoice #: ${invoiceNumber}`, 20, 50);
-      doc.text(`Issue Date: ${new Date(issueDate).toLocaleDateString()}`, 20, 60);
-      doc.text(`Due Date: ${new Date(dueDate).toLocaleDateString()}`, 20, 70);
-      
-      // From section
-      doc.text('FROM:', 20, 90);
-      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('From:', 20, 70);
+      doc.setFont(undefined, 'normal');
       if (profile?.freelancer_name) {
-        doc.text(profile.freelancer_name, 20, 100);
+        doc.text(profile.freelancer_name, 20, 82);
+      } else {
+        doc.text('Your Company Name', 20, 82);
       }
       if (profile?.company_address) {
         const addressLines = profile.company_address.split('\n');
         addressLines.forEach((line, index) => {
-          doc.text(line, 20, 110 + (index * 10));
+          doc.text(line, 20, 94 + (index * 10));
         });
+      } else {
+        doc.text('Your Address', 20, 94);
       }
       
-      // To section
-      doc.setFontSize(12);
-      doc.text('TO:', 120, 90);
-      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('To:', 120, 70);
+      doc.setFont(undefined, 'normal');
       if (project?.clients.name) {
-        doc.text(project.clients.name, 120, 100);
+        doc.text(project.clients.name, 120, 82);
       }
       if (project?.clients.address) {
         const addressLines = project.clients.address.split('\n');
         addressLines.forEach((line, index) => {
-          doc.text(line, 120, 110 + (index * 10));
+          doc.text(line, 120, 94 + (index * 10));
         });
       }
       
-      // Project name
-      doc.setFontSize(12);
-      doc.text(`Project: ${project?.name || 'N/A'}`, 20, 150);
+      // Project and dates section
+      doc.setFont(undefined, 'bold');
+      doc.text('Project:', 20, 120);
+      doc.setFont(undefined, 'normal');
+      doc.text(project?.name || 'N/A', 20, 132);
       
-      // Time entries table
+      doc.setFont(undefined, 'bold');
+      doc.text('Issue Date:', 120, 120);
+      doc.setFont(undefined, 'normal');
+      doc.text(new Date(issueDate).toLocaleDateString(), 120, 132);
+      
+      doc.setFont(undefined, 'bold');
+      doc.text('Due Date:', 120, 144);
+      doc.setFont(undefined, 'normal');
+      doc.text(new Date(dueDate).toLocaleDateString(), 120, 156);
+      
+      // Add a line separator
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, 170, pageWidth - 20, 170);
+      
+      // Services/billing section
+      doc.setFillColor(248, 250, 252); // Light gray background
+      doc.rect(20, 180, pageWidth - 40, 30, 'F');
+      
+      doc.setFont(undefined, 'bold');
+      doc.text('Description', 25, 195);
+      doc.text('Rate', 120, 195);
+      doc.text('Amount', 160, 195);
+      
+      doc.setFont(undefined, 'normal');
+      doc.text('Professional Services', 25, 205);
+      doc.text(`${formatCurrency(parseFloat(hourlyRate))}/hr`, 120, 205);
+      doc.text(formatCurrency(totalAmount), 160, 205);
+      
+      // Total section with colored background
+      doc.setFillColor(34, 197, 94); // Green background
+      doc.rect(20, 220, pageWidth - 40, 25, 'F');
+      
+      doc.setTextColor(255, 255, 255); // White text
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Total Amount:', 25, 235);
+      doc.text(formatCurrency(totalAmount), pageWidth - 25, 235, { align: 'right' });
+      
+      // Status badge
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      
+      // Draft status (since it's being generated)
+      doc.setFillColor(156, 163, 175); // Gray
+      doc.setTextColor(255, 255, 255);
+      
+      const statusText = 'DRAFT';
+      const statusWidth = doc.getTextWidth(statusText) + 10;
+      doc.rect(pageWidth - statusWidth - 20, 255, statusWidth, 15, 'F');
+      doc.text(statusText, pageWidth - statusWidth/2 - 20, 265, { align: 'center' });
+      
+      // Footer
+      doc.setTextColor(100, 100, 100);
       doc.setFontSize(10);
-      let yPosition = 170;
-      doc.text('Date', 20, yPosition);
-      doc.text('Description', 50, yPosition);
-      doc.text('Duration', 130, yPosition);
-      doc.text('Amount', 170, yPosition);
-      
-      yPosition += 10;
-      doc.line(20, yPosition - 5, 190, yPosition - 5);
-      
-      timeEntries.forEach((entry) => {
-        const hours = entry.duration_seconds / 3600;
-        const amount = hours * parseFloat(hourlyRate);
-        
-        doc.text(new Date(entry.start_time).toLocaleDateString(), 20, yPosition);
-        doc.text(entry.task_description.substring(0, 30), 50, yPosition);
-        doc.text(formatDuration(entry.duration_seconds), 130, yPosition);
-        doc.text(formatCurrency(amount), 170, yPosition);
-        
-        yPosition += 10;
-      });
-      
-      // Total
-      yPosition += 10;
-      doc.line(20, yPosition - 5, 190, yPosition - 5);
-      doc.setFontSize(12);
-      doc.text(`Total: ${formatCurrency(totalAmount)}`, 170, yPosition + 10);
-      doc.text(`${totalHours.toFixed(2)} hours × ${getCurrencySymbol()}${hourlyRate}/hour`, 120, yPosition + 20);
+      doc.setFont(undefined, 'normal');
+      doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 20, { align: 'center' });
       
       doc.save(`invoice-${invoiceNumber}.pdf`);
       

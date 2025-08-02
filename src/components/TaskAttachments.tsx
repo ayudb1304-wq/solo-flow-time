@@ -225,16 +225,18 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
   const handleDownload = async (attachment: TaskAttachment) => {
     try {
       if (attachment.attachment_type === 'file') {
-        // For files, open in new tab to download
-        window.open(attachment.url, '_blank');
-      } else {
-        // For links, open the link
-        window.open(attachment.url, '_blank');
+        // For files, trigger download
+        const link = document.createElement('a');
+        link.href = attachment.url;
+        link.download = attachment.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to open attachment",
+        description: "Failed to download file",
         variant: "destructive",
       });
     }
@@ -252,7 +254,7 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 mt-6 pt-6 border-t border-border">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium">Attachments ({attachments.length})</h4>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -363,18 +365,16 @@ export const TaskAttachments = ({ taskId }: TaskAttachmentsProps) => {
                     )}
                   </Button>
                 )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleDownload(attachment)}
-                  title={attachment.attachment_type === 'file' ? 'Download file' : 'Open link'}
-                >
-                  {attachment.attachment_type === 'file' ? (
+                {attachment.attachment_type === 'file' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDownload(attachment)}
+                    title="Download file"
+                  >
                     <Download className="h-4 w-4" />
-                  ) : (
-                    <ExternalLink className="h-4 w-4" />
-                  )}
-                </Button>
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="ghost"
