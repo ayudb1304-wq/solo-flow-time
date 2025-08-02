@@ -3,6 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Timer, User, Bell, LogOut, Settings } from "lucide-react";
 import { useAuth } from "./auth/AuthProvider";
+import { SubscriptionBadge } from "./SubscriptionBadge";
 
 export const TopBar = () => {
   const { user, logout } = useAuth();
@@ -19,8 +20,8 @@ export const TopBar = () => {
           </div>
         </div>
 
-
         <div className="flex items-center space-x-4">
+          <SubscriptionBadge />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

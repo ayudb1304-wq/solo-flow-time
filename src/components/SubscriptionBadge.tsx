@@ -1,0 +1,51 @@
+import { Badge } from "@/components/ui/badge";
+import { Crown, Zap, Star } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+
+export const SubscriptionBadge = () => {
+  const { plan, loading } = useSubscription();
+
+  if (loading) {
+    return <Badge variant="secondary" className="animate-pulse">Loading...</Badge>;
+  }
+
+  const getPlanIcon = (plan: string) => {
+    switch (plan) {
+      case 'pro':
+        return <Zap className="h-3 w-3 mr-1" />;
+      case 'business':
+        return <Crown className="h-3 w-3 mr-1" />;
+      default:
+        return <Star className="h-3 w-3 mr-1" />;
+    }
+  };
+
+  const getPlanVariant = (plan: string) => {
+    switch (plan) {
+      case 'pro':
+        return "default";
+      case 'business':
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
+  const getPlanLabel = (plan: string) => {
+    switch (plan) {
+      case 'pro':
+        return 'Pro Plan';
+      case 'business':
+        return 'Business Plan';
+      default:
+        return 'Trial';
+    }
+  };
+
+  return (
+    <Badge variant={getPlanVariant(plan)} className="flex items-center">
+      {getPlanIcon(plan)}
+      {getPlanLabel(plan)}
+    </Badge>
+  );
+};

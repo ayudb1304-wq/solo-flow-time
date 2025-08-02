@@ -147,6 +147,36 @@ export const SettingsPage = () => {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    if (!confirm('Are you sure you want to cancel your subscription? You will lose access to premium features.')) {
+      return;
+    }
+
+    setUpgrading(true);
+    try {
+      const { error } = await supabase.functions.invoke('cancel-razorpay-subscription');
+
+      if (error) throw error;
+
+      toast({
+        title: "Subscription Cancelled",
+        description: "Your subscription has been cancelled successfully.",
+      });
+
+      // Refresh to update the UI
+      window.location.reload();
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to cancel subscription. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
   const getPlanIcon = (plan: string) => {
     switch (plan) {
       case 'pro': return <Zap className="h-4 w-4" />;
@@ -265,6 +295,24 @@ export const SettingsPage = () => {
                 {profile?.subscription_status === 'trial' ? 'Free' : 'Active'}
               </Badge>
             </div>
+
+            {/* Cancel Subscription for Active Plans */}
+            {(profile?.subscription_status === 'pro' || profile?.subscription_status === 'business') && (
+              <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                <h3 className="font-semibold text-destructive mb-2">Cancel Subscription</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Cancel your subscription and return to the trial plan. You'll lose access to premium features immediately.
+                </p>
+                <Button 
+                  onClick={handleCancelSubscription}
+                  disabled={upgrading}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  {upgrading ? 'Cancelling...' : 'Cancel Subscription'}
+                </Button>
+              </div>
+            )}
 
             {/* Upgrade Options */}
             {profile?.subscription_status === 'trial' && (
