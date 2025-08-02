@@ -174,11 +174,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Don't throw an error if session doesn't exist - user is already logged out
       if (error && !error.message.includes('session_not_found') && !error.message.includes('Session not found')) {
         console.warn('Logout warning:', error.message);
-        toast({
-          title: "Logout warning",
-          description: "You have been logged out locally, but there may have been an issue with the server.",
-          variant: "default",
-        });
+        // Don't show any toast for minor server issues during logout
+        // User is already logged out locally which is what matters
         return;
       }
 
