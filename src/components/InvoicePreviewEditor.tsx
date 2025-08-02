@@ -119,23 +119,113 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
 
   const downloadInvoicePDF = () => {
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
     
-    // Add invoice content
-    doc.setFontSize(20);
-    doc.text('INVOICE', 20, 30);
+    // Add header background
+    doc.setFillColor(59, 130, 246); // Blue background
+    doc.rect(0, 0, pageWidth, 50, 'F');
     
+    // Invoice title
+    doc.setTextColor(255, 255, 255); // White text
+    doc.setFontSize(28);
+    doc.setFont(undefined, 'bold');
+    doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'normal');
+    doc.text(`#${invoice.invoice_number}`, pageWidth / 2, 40, { align: 'center' });
+    
+    // Reset text color for body
+    doc.setTextColor(0, 0, 0);
+    
+    // From and To sections
     doc.setFontSize(12);
-    doc.text(`Invoice #: ${invoice.invoice_number}`, 20, 50);
-    doc.text(`Client: ${invoice.client_name}`, 20, 65);
+    doc.setFont(undefined, 'bold');
+    doc.text('From:', 20, 70);
+    doc.setFont(undefined, 'normal');
+    doc.text('Your Company Name', 20, 82);
+    doc.text('Your Address', 20, 94);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('To:', 120, 70);
+    doc.setFont(undefined, 'normal');
+    doc.text(invoice.client_name, 120, 82);
     if (invoice.client_address) {
-      doc.text(`Address: ${invoice.client_address}`, 20, 80);
+      doc.text(invoice.client_address, 120, 94);
     }
-    doc.text(`Project: ${invoice.projects.name}`, 20, 95);
-    doc.text(`Issue Date: ${new Date(invoice.issue_date).toLocaleDateString()}`, 20, 110);
-    doc.text(`Due Date: ${new Date(invoice.due_date).toLocaleDateString()}`, 20, 125);
-    doc.text(`Hourly Rate: ${getCurrencySymbol()}${invoice.hourly_rate.toFixed(2)}`, 20, 140);
-    doc.text(`Total Amount: ${formatCurrency(invoice.total_amount)}`, 20, 155);
-    doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, 170);
+    
+    // Project and dates section
+    doc.setFont(undefined, 'bold');
+    doc.text('Project:', 20, 120);
+    doc.setFont(undefined, 'normal');
+    doc.text(invoice.projects.name, 20, 132);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Issue Date:', 120, 120);
+    doc.setFont(undefined, 'normal');
+    doc.text(new Date(invoice.issue_date).toLocaleDateString(), 120, 132);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Due Date:', 120, 144);
+    doc.setFont(undefined, 'normal');
+    doc.text(new Date(invoice.due_date).toLocaleDateString(), 120, 156);
+    
+    // Add a line separator
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 170, pageWidth - 20, 170);
+    
+    // Services/billing section
+    doc.setFillColor(248, 250, 252); // Light gray background
+    doc.rect(20, 180, pageWidth - 40, 30, 'F');
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Description', 25, 195);
+    doc.text('Rate', 120, 195);
+    doc.text('Amount', 160, 195);
+    
+    doc.setFont(undefined, 'normal');
+    doc.text('Professional Services', 25, 205);
+    doc.text(`${getCurrencySymbol()}${invoice.hourly_rate.toFixed(2)}/hr`, 120, 205);
+    doc.text(formatCurrency(invoice.total_amount), 160, 205);
+    
+    // Total section with colored background
+    doc.setFillColor(34, 197, 94); // Green background
+    doc.rect(20, 220, pageWidth - 40, 25, 'F');
+    
+    doc.setTextColor(255, 255, 255); // White text
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('Total Amount:', 25, 235);
+    doc.text(formatCurrency(invoice.total_amount), pageWidth - 25, 235, { align: 'right' });
+    
+    // Status badge
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    
+    // Different colors for different statuses
+    if (invoice.status === 'paid') {
+      doc.setFillColor(34, 197, 94); // Green
+      doc.setTextColor(255, 255, 255);
+    } else if (invoice.status === 'sent') {
+      doc.setFillColor(251, 191, 36); // Yellow
+      doc.setTextColor(0, 0, 0);
+    } else {
+      doc.setFillColor(156, 163, 175); // Gray
+      doc.setTextColor(255, 255, 255);
+    }
+    
+    const statusText = invoice.status.toUpperCase();
+    const statusWidth = doc.getTextWidth(statusText) + 10;
+    doc.rect(pageWidth - statusWidth - 20, 255, statusWidth, 15, 'F');
+    doc.text(statusText, pageWidth - statusWidth/2 - 20, 265, { align: 'center' });
+    
+    // Footer
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 20, { align: 'center' });
     
     // Save the PDF
     doc.save(`invoice-${invoice.invoice_number}.pdf`);
@@ -179,13 +269,6 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
               >
                 <Download className="h-4 w-4 mr-1" />
                 Download PDF
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={onClose}
-              >
-                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
