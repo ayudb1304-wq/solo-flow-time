@@ -91,17 +91,6 @@ serve(async (req) => {
         notes: {
           user_id: userId,
           plan: planId,
-        },
-        options: {
-          checkout: {
-            method: {
-              card: 1,
-              netbanking: 1,
-              wallet: 1,
-              upi: 1,
-              emi: 1
-            }
-          }
         }
       }),
     });
