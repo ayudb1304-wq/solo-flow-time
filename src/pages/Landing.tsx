@@ -22,22 +22,22 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
     {
       icon: <Clock className="h-6 w-6" />,
       title: "Time Tracking",
-      description: "Track time spent on projects with precision and generate detailed reports"
+      description: "Start a timer with a single click, directly from your task list. No more clunky integrations or manual spreadsheets."
     },
     {
       icon: <Users className="h-6 w-6" />,
       title: "Client Management",
-      description: "Organize all your client information and project history in one place"
+      description: "A clean, simple directory for your clients. See every project and invoice at a glance, without the clutter of a traditional CRM."
     },
     {
       icon: <FileText className="h-6 w-6" />,
       title: "Invoice Generation",
-      description: "Create professional invoices automatically from your tracked time"
+      description: "Turn your tracked hours into a professional invoice instantly. SoloFlow does the math for you, so you can get paid faster."
     },
     {
       icon: <BarChart3 className="h-6 w-6" />,
       title: "Analytics & Reports",
-      description: "Get insights into your productivity and revenue trends"
+      description: "Clear, simple reports that matter. See what you're earning and where your time is going, without overwhelming charts."
     }
   ];
 
@@ -75,22 +75,22 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       buttonColor: "bg-blue-600 hover:bg-blue-700",
       popular: true
     },
-    {
-      icon: <Crown className="h-5 w-5" />,
-      name: "Business",
-      price: "₹1599",
-      period: "/month",
-      description: "For agencies and teams",
-      features: [
-        "Everything in Pro",
-        "Multi-user access",
-        "API integrations",
-        "White-label options",
-        "Custom branding"
-      ],
-      color: "border-purple-200",
-      buttonColor: "bg-purple-600 hover:bg-purple-700"
-    }
+    // {
+    //   icon: <Crown className="h-5 w-5" />,
+    //   name: "Business",
+    //   price: "₹1599",
+    //   period: "/month",
+    //   description: "For agencies and teams",
+    //   features: [
+    //     "Everything in Pro",
+    //     "Multi-user access",
+    //     "API integrations",
+    //     "White-label options",
+    //     "Custom branding"
+    //   ],
+    //   color: "border-purple-200",
+    //   buttonColor: "bg-purple-600 hover:bg-purple-700"
+    // }
   ];
 
   return (
@@ -143,8 +143,9 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
             <br />Business
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
-            The all-in-one platform for freelancers and agencies to track time, manage clients, 
-            and generate professional invoices. Focus on what you do best while we handle the rest.
+           The refreshingly simple, all-in-one platform for solo freelancers. 
+           Ditch the spreadsheets and complex tools. Focus on your work, 
+            not your software.
           </p>
           <div className="flex justify-center">
             <Button 
@@ -165,7 +166,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           style={{ transform: `translateY(${scrollY * 0.03}px)` }}
         >
           <h3 className="text-3xl font-bold text-foreground mb-4">
-            Everything You Need to Succeed
+            Finally, an All-in-One Tool That's Actually Simple
           </h3>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Powerful features designed to help freelancers and agencies work more efficiently
