@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Users, FileText, BarChart3, Zap, Crown, Star, Check } from "lucide-react";
+import { Clock, Users, FileText, BarChart3, Zap, Star, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
@@ -74,23 +74,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       color: "border-blue-200 border-2",
       buttonColor: "bg-blue-600 hover:bg-blue-700",
       popular: true
-    },
-    // {
-    //   icon: <Crown className="h-5 w-5" />,
-    //   name: "Business",
-    //   price: "₹1599",
-    //   period: "/month",
-    //   description: "For agencies and teams",
-    //   features: [
-    //     "Everything in Pro",
-    //     "Multi-user access",
-    //     "API integrations",
-    //     "White-label options",
-    //     "Custom branding"
-    //   ],
-    //   color: "border-purple-200",
-    //   buttonColor: "bg-purple-600 hover:bg-purple-700"
-    // }
+    }
   ];
 
   return (
@@ -383,11 +367,10 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
                     ))}
                   </ul>
                   <Button 
-                    onClick={plan.name === 'Business' ? undefined : onGetStarted}
-                    className={`w-full ${plan.name === 'Business' ? 'bg-gray-400 cursor-not-allowed' : plan.buttonColor} text-white shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105`}
-                    disabled={plan.name === 'Business'}
+                    onClick={onGetStarted}
+                    className={`w-full ${plan.buttonColor} text-white shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105`}
                   >
-                    {plan.name === 'Trial' ? 'Start Free' : plan.name === 'Business' ? 'Coming Soon' : 'Get Started'}
+                    {plan.name === 'Trial' ? 'Start Free' : 'Get Started'}
                   </Button>
                 </CardContent>
               </Card>

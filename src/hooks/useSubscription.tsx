@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
 
-export type SubscriptionPlan = 'trial' | 'pro' | 'business';
+export type SubscriptionPlan = 'trial' | 'pro';
 
 interface SubscriptionLimits {
   maxClients: number;
@@ -28,13 +28,6 @@ const PLAN_LIMITS: Record<SubscriptionPlan, SubscriptionLimits> = {
     hasAdvancedFeatures: false,
   },
   pro: {
-    maxClients: 25,
-    maxProjects: 50,
-    maxInvoicesPerMonth: 100,
-    canExportPDF: true,
-    hasAdvancedFeatures: true,
-  },
-  business: {
     maxClients: -1, // unlimited
     maxProjects: -1, // unlimited
     maxInvoicesPerMonth: -1, // unlimited
@@ -116,7 +109,7 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
     if (typeof limit === 'boolean') {
       return {
         allowed: limit,
-        message: !limit ? `This feature is only available on Pro and Business plans` : undefined,
+        message: !limit ? `This feature is only available on Pro plan` : undefined,
       };
     }
     

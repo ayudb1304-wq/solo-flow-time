@@ -123,7 +123,7 @@ export const SettingsPage = () => {
     }
   };
 
-  const handleUpgrade = async (planId: 'pro' | 'business') => {
+  const handleUpgrade = async (planId: 'pro') => {
     setUpgrading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-razorpay-subscription', {
@@ -139,37 +139,6 @@ export const SettingsPage = () => {
         title: "Redirecting to payment",
         description: "Complete your payment to upgrade your plan",
       });
-
-      // For testing: simulate subscription activation after 5 seconds
-      setTimeout(async () => {
-        try {
-          await supabase.functions.invoke('test-subscription-update', {
-            body: { 
-              userId: user?.id, 
-              plan: planId 
-            }
-          });
-          
-          const upgradeMessage = profile?.subscription_cancel_at_period_end 
-            ? `Reactivated ${planId} plan successfully! Cancellation has been removed.`
-            : `Upgraded to ${planId} plan successfully!`;
-            
-          toast({
-            title: "Success",
-            description: upgradeMessage,
-          });
-          
-          // Refresh the page to update subscription status
-          window.location.reload();
-        } catch (error) {
-          console.error('Error updating subscription:', error);
-          toast({
-            title: "Error",
-            description: "Payment processed but failed to update subscription. Please contact support.",
-            variant: "destructive",
-          });
-        }
-      }, 5000);
 
     } catch (error) {
       toast({
@@ -215,7 +184,6 @@ export const SettingsPage = () => {
   const getPlanIcon = (plan: string) => {
     switch (plan) {
       case 'pro': return <Zap className="h-4 w-4" />;
-      case 'business': return <Crown className="h-4 w-4" />;
       default: return <Star className="h-4 w-4" />;
     }
   };
@@ -223,7 +191,6 @@ export const SettingsPage = () => {
   const getPlanColor = (plan: string) => {
     switch (plan) {
       case 'pro': return 'bg-blue-500';
-      case 'business': return 'bg-purple-500';
       default: return 'bg-green-500';
     }
   };
@@ -356,7 +323,6 @@ export const SettingsPage = () => {
                   <p className="text-sm text-muted-foreground">
                     {profile?.subscription_status === 'trial' && 'Limited features - Upgrade for full access'}
                     {profile?.subscription_status === 'pro' && !profile?.subscription_cancel_at_period_end && 'Unlimited clients & projects'}
-                    {profile?.subscription_status === 'business' && !profile?.subscription_cancel_at_period_end && 'Everything + multi-user access'}
                     {profile?.subscription_cancel_at_period_end && profile?.subscription_period_end && (
                       <span className="text-orange-600">
                         Active until {new Date(profile.subscription_period_end).toLocaleDateString()}
@@ -372,8 +338,7 @@ export const SettingsPage = () => {
             </div>
 
             {/* Cancel Subscription for Active Plans */}
-            {(profile?.subscription_status === 'pro' || profile?.subscription_status === 'business') && 
-             !profile?.subscription_cancel_at_period_end && (
+            {profile?.subscription_status === 'pro' && !profile?.subscription_cancel_at_period_end && (
               <div className="mt-6 pt-4 border-t">
                 <div className="text-right">
                   <Button 
@@ -399,60 +364,34 @@ export const SettingsPage = () => {
                     </p>
                   </div>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Pro Plan */}
-                <Card className="border-2 border-blue-200">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2 text-blue-600">
-                      <Zap className="h-5 w-5" />
-                      Pro Plan
-                    </CardTitle>
-                    <div className="text-2xl font-bold">₹799<span className="text-sm font-normal text-muted-foreground">/month</span></div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <ul className="space-y-2 text-sm">
-                      <li>✓ Unlimited clients & projects</li>
-                      <li>✓ Advanced invoicing</li>
-                      <li>✓ Detailed reports</li>
-                      <li>✓ Priority support</li>
-                    </ul>
-                    <Button 
-                      onClick={() => handleUpgrade('pro')} 
-                      disabled={upgrading}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                    >
-                      {upgrading ? 'Processing...' : profile?.subscription_cancel_at_period_end ? 'Reactivate Pro Plan' : 'Upgrade to Pro'}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Business Plan */}
-                <Card className="border-2 border-purple-200">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2 text-purple-600">
-                      <Crown className="h-5 w-5" />
-                      Business Plan
-                    </CardTitle>
-                    <div className="text-2xl font-bold">₹1599<span className="text-sm font-normal text-muted-foreground">/month</span></div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <ul className="space-y-2 text-sm">
-                      <li>✓ Everything in Pro</li>
-                      <li>✓ Multi-user access</li>
-                      <li>✓ API integrations</li>
-                      <li>✓ White-label options</li>
-                    </ul>
-                    <Button 
-                      onClick={() => handleUpgrade('business')} 
-                      disabled={upgrading}
-                      className="w-full bg-purple-600 hover:bg-purple-700"
-                    >
-                      {upgrading ? 'Processing...' : profile?.subscription_cancel_at_period_end ? 'Reactivate Business Plan' : 'Upgrade to Business'}
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div className="flex justify-center">
+                  {/* Pro Plan */}
+                  <Card className="border-2 border-blue-200 max-w-sm">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="flex items-center gap-2 text-blue-600">
+                        <Zap className="h-5 w-5" />
+                        Pro Plan
+                      </CardTitle>
+                      <div className="text-2xl font-bold">₹799<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <ul className="space-y-2 text-sm">
+                        <li>✓ Unlimited clients & projects</li>
+                        <li>✓ Advanced invoicing</li>
+                        <li>✓ Detailed reports</li>
+                        <li>✓ Priority support</li>
+                      </ul>
+                      <Button 
+                        onClick={() => handleUpgrade('pro')} 
+                        disabled={upgrading}
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                      >
+                        {upgrading ? 'Processing...' : profile?.subscription_cancel_at_period_end ? 'Reactivate Pro Plan' : 'Upgrade to Pro'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
-            </div>
             )}
 
             {/* Cancellation Notice */}

@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Crown, Zap, Star } from "lucide-react";
+import { Zap, Star } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 
 export const SubscriptionBadge = () => {
@@ -15,8 +15,6 @@ export const SubscriptionBadge = () => {
     switch (plan) {
       case 'pro':
         return <Zap className="h-3 w-3 mr-1" />;
-      case 'business':
-        return <Crown className="h-3 w-3 mr-1" />;
       default:
         return <Star className="h-3 w-3 mr-1" />;
     }
@@ -26,8 +24,6 @@ export const SubscriptionBadge = () => {
     switch (plan) {
       case 'pro':
         return "default";
-      case 'business':
-        return "secondary";
       default:
         return "outline";
     }
@@ -37,8 +33,6 @@ export const SubscriptionBadge = () => {
     switch (plan) {
       case 'pro':
         return 'Pro Plan';
-      case 'business':
-        return 'Business Plan';
       default:
         return 'Trial';
     }

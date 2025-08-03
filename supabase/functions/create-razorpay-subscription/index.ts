@@ -33,17 +33,6 @@ serve(async (req) => {
           amount: 79900,
           currency: 'INR',
         }
-      },
-      business: {
-        amount: 159900, // ₹1599 in paise
-        period: 'monthly', 
-        interval: 1,
-        item: {
-          name: 'SoloFlow Business Plan',
-          description: 'Everything in Pro + multi-user, integrations, priority support',
-          amount: 159900,
-          currency: 'INR',
-        }
       }
     };
 
