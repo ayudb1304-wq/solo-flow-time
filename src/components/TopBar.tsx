@@ -33,9 +33,11 @@ export const TopBar = ({ onMenuClick, onPageChange }: TopBarProps) => {
             onClick={() => navigate('/')} 
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <Timer className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <img 
+              src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
+              alt="SoloFlow Logo" 
+              className="h-8 w-8"
+            />
             <h1 className="text-lg md:text-xl font-bold text-foreground">SoloFlow</h1>
           </button>
         </div>

@@ -87,9 +87,15 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden">
+      {/* Floating background elements for parallax effect */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-blue-500/10 rounded-full blur-lg animate-pulse delay-1000"></div>
+        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-purple-500/5 rounded-full blur-xl animate-pulse delay-2000"></div>
+      </div>
       {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50 shadow-elegant">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img 
@@ -106,7 +112,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 text-center">
+      <section className="container mx-auto px-4 py-12 md:py-20 text-center relative z-10">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             Streamline Your
@@ -121,7 +127,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
             <Button 
               onClick={onGetStarted}
               size="lg" 
-              className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90"
+              className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90 shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
             >
               Start Free Trial
             </Button>
@@ -130,7 +136,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20">
+      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10">
         <div className="text-center mb-16">
           <h3 className="text-3xl font-bold text-foreground mb-4">
             Everything You Need to Succeed
@@ -142,10 +148,10 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {features.map((feature, index) => (
-            <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+            <Card key={index} className="border-0 shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 group backdrop-blur-sm bg-card/80">
               <CardHeader className="text-center pb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <div className="text-primary">
+                <div className="w-12 h-12 rounded-full bg-gradient-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-gradient-primary/20 transition-colors duration-300 group-hover:shadow-glow">
+                  <div className="text-primary group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
                 </div>
@@ -160,7 +166,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Pricing Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20">
+      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10">
         <div className="text-center mb-16">
           <h3 className="text-3xl font-bold text-foreground mb-4">
             Simple, Transparent Pricing
@@ -172,7 +178,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
-            <Card key={index} className={`${plan.color} relative overflow-hidden`}>
+            <Card key={index} className={`${plan.color} relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-card/90`}>
               {plan.popular && (
                 <div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 text-sm">
                   Most Popular
@@ -200,7 +206,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
                 </ul>
                 <Button 
                   onClick={plan.name === 'Business' ? undefined : onGetStarted}
-                  className={`w-full ${plan.name === 'Business' ? 'bg-gray-400 cursor-not-allowed' : plan.buttonColor} text-white`}
+                  className={`w-full ${plan.name === 'Business' ? 'bg-gray-400 cursor-not-allowed' : plan.buttonColor} text-white shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105`}
                   disabled={plan.name === 'Business'}
                 >
                   {plan.name === 'Trial' ? 'Start Free' : plan.name === 'Business' ? 'Coming Soon' : 'Get Started'}
@@ -212,7 +218,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 text-center">
+      <section className="container mx-auto px-4 py-12 md:py-20 text-center relative z-10">
         <div className="max-w-3xl mx-auto">
           <h3 className="text-3xl font-bold text-foreground mb-6">
             Ready to Transform Your Business?
@@ -223,7 +229,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           <Button 
             onClick={onGetStarted}
             size="lg" 
-            className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90"
+            className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90 shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
           >
             Start Your Free Trial Today
           </Button>
@@ -231,7 +237,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30 py-12">
+      <footer className="border-t bg-muted/30 py-12 relative z-10 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
             <div>

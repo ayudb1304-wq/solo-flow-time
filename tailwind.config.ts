@@ -72,6 +72,7 @@ export default {
 				'soft': 'var(--shadow-soft)',
 				'medium': 'var(--shadow-medium)',
 				'large': 'var(--shadow-large)',
+				'elegant': 'var(--shadow-medium)',
 				'glow': 'var(--shadow-glow)'
 			},
 			transitionTimingFunction: {
