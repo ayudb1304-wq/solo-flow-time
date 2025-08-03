@@ -337,7 +337,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="container mx-auto px-4 py-16 md:py-24 relative z-10 bg-gradient-to-b from-accent/2 to-background/50 backdrop-blur-sm">
+      <section id="pricing" className="container mx-auto px-4 py-20 md:py-32 mt-16 md:mt-24 relative z-10 bg-gradient-to-b from-accent/2 to-background/50 backdrop-blur-sm flex flex-col items-center justify-center min-h-[80vh]">
         <div 
           className="text-center mb-16"
           style={{ transform: `translateY(${scrollY * 0.04}px)` }}
