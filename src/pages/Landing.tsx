@@ -408,27 +408,6 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 text-center relative z-10 bg-gradient-to-b from-primary/3 to-secondary/3 backdrop-blur-sm">
-        <div 
-          className="max-w-3xl mx-auto"
-          style={{ transform: `translateY(${scrollY * 0.035}px)` }}
-        >
-          <h3 className="text-3xl font-bold text-foreground mb-6">
-            Ready to Transform Your Business?
-          </h3>
-          <p className="text-lg text-muted-foreground mb-8">
-            Join thousands of freelancers who have streamlined their workflow with SoloFlow
-          </p>
-          <Button 
-            onClick={onGetStarted}
-            size="lg" 
-            className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90 shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
-          >
-            Start Your Free Trial Today
-          </Button>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t bg-gradient-to-b from-muted/30 to-muted/50 py-12 relative z-10 backdrop-blur-sm">
