@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Users, FileText, BarChart3, Zap, Crown, Star, Check } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 interface LandingProps {
@@ -10,6 +10,13 @@ interface LandingProps {
 
 export const Landing = ({ onGetStarted }: LandingProps) => {
   const [activeTab, setActiveTab] = useState<'freelancer' | 'agency'>('freelancer');
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const features = [
     {
@@ -88,11 +95,24 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden">
-      {/* Floating background elements for parallax effect */}
+      {/* Parallax background elements */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-blue-500/10 rounded-full blur-lg animate-pulse delay-1000"></div>
-        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-purple-500/5 rounded-full blur-xl animate-pulse delay-2000"></div>
+        <div 
+          className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full blur-xl animate-pulse"
+          style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+        ></div>
+        <div 
+          className="absolute top-40 right-20 w-24 h-24 bg-secondary/10 rounded-full blur-lg animate-pulse delay-1000"
+          style={{ transform: `translateY(${scrollY * 0.15}px)` }}
+        ></div>
+        <div 
+          className="absolute bottom-40 left-1/4 w-40 h-40 bg-accent/5 rounded-full blur-xl animate-pulse delay-2000"
+          style={{ transform: `translateY(${scrollY * -0.1}px)` }}
+        ></div>
+        <div 
+          className="absolute top-1/2 right-1/4 w-20 h-20 bg-primary/8 rounded-full blur-md animate-pulse delay-3000"
+          style={{ transform: `translateY(${scrollY * 0.2}px)` }}
+        ></div>
       </div>
       {/* Header */}
       <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50 shadow-elegant">
@@ -112,8 +132,11 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 text-center relative z-10">
-        <div className="max-w-4xl mx-auto">
+      <section className="container mx-auto px-4 py-12 md:py-20 text-center relative z-10 bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-sm">
+        <div 
+          className="max-w-4xl mx-auto"
+          style={{ transform: `translateY(${scrollY * 0.05}px)` }}
+        >
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             Streamline Your
             <span className="text-transparent bg-clip-text bg-gradient-primary"> Freelance</span>
@@ -136,8 +159,11 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10">
-        <div className="text-center mb-16">
+      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-primary/2 to-secondary/2 backdrop-blur-sm">
+        <div 
+          className="text-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.03}px)` }}
+        >
           <h3 className="text-3xl font-bold text-foreground mb-4">
             Everything You Need to Succeed
           </h3>
@@ -146,7 +172,10 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
+          style={{ transform: `translateY(${scrollY * 0.02}px)` }}
+        >
           {features.map((feature, index) => (
             <Card key={index} className="border-0 shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 group backdrop-blur-sm bg-card/80">
               <CardHeader className="text-center pb-4">
@@ -166,8 +195,11 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Pricing Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10">
-        <div className="text-center mb-16">
+      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-accent/2 to-background/50 backdrop-blur-sm">
+        <div 
+          className="text-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.04}px)` }}
+        >
           <h3 className="text-3xl font-bold text-foreground mb-4">
             Simple, Transparent Pricing
           </h3>
@@ -176,7 +208,10 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
+        <div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto"
+          style={{ transform: `translateY(${scrollY * 0.025}px)` }}
+        >
           {plans.map((plan, index) => (
             <Card key={index} className={`${plan.color} relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-card/90`}>
               {plan.popular && (
@@ -218,8 +253,11 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 text-center relative z-10">
-        <div className="max-w-3xl mx-auto">
+      <section className="container mx-auto px-4 py-12 md:py-20 text-center relative z-10 bg-gradient-to-b from-primary/3 to-secondary/3 backdrop-blur-sm">
+        <div 
+          className="max-w-3xl mx-auto"
+          style={{ transform: `translateY(${scrollY * 0.035}px)` }}
+        >
           <h3 className="text-3xl font-bold text-foreground mb-6">
             Ready to Transform Your Business?
           </h3>
@@ -237,7 +275,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30 py-12 relative z-10 backdrop-blur-sm">
+      <footer className="border-t bg-gradient-to-b from-muted/30 to-muted/50 py-12 relative z-10 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
             <div>
