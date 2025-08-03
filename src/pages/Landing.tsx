@@ -125,6 +125,11 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
             />
             <h1 className="text-xl font-bold text-foreground">SoloFlow</h1>
           </div>
+          <nav className="hidden md:flex items-center gap-6">
+            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
+            <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How it Works</a>
+            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+          </nav>
           <Button onClick={onGetStarted} variant="outline">
             Sign In
           </Button>
@@ -160,7 +165,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-primary/2 to-secondary/2 backdrop-blur-sm">
+      <section id="features" className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-primary/2 to-secondary/2 backdrop-blur-sm">
         <div 
           className="text-center mb-16"
           style={{ transform: `translateY(${scrollY * 0.03}px)` }}
@@ -196,7 +201,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       </section>
 
       {/* How It Works Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-secondary/3 to-accent/3 backdrop-blur-sm">
+      <section id="how-it-works" className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-secondary/3 to-accent/3 backdrop-blur-sm">
         <div 
           className="text-center mb-16"
           style={{ transform: `translateY(${scrollY * 0.03}px)` }}
@@ -329,6 +334,64 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </div>
         </div>
 
+        {/* Pricing Section */}
+        <section id="pricing" className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-accent/2 to-background/50 backdrop-blur-sm">
+          <div 
+            className="text-center mb-16"
+            style={{ transform: `translateY(${scrollY * 0.04}px)` }}
+          >
+            <h3 className="text-3xl font-bold text-foreground mb-4">
+              Simple, Transparent Pricing
+            </h3>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Choose the plan that fits your needs. Start free and upgrade as you grow.
+            </p>
+          </div>
+
+          <div 
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"
+            style={{ transform: `translateY(${scrollY * 0.025}px)` }}
+          >
+            {plans.map((plan, index) => (
+              <Card key={index} className={`${plan.color} relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-card/90`}>
+                {plan.popular && (
+                  <div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 text-sm">
+                    Most Popular
+                  </div>
+                )}
+                <CardHeader className="text-center pb-4">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <div className="text-primary">{plan.icon}</div>
+                    <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-3xl font-bold">{plan.price}</span>
+                    <span className="text-muted-foreground">{plan.period}</span>
+                  </div>
+                  <p className="text-muted-foreground">{plan.description}</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    onClick={plan.name === 'Business' ? undefined : onGetStarted}
+                    className={`w-full ${plan.name === 'Business' ? 'bg-gray-400 cursor-not-allowed' : plan.buttonColor} text-white shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105`}
+                    disabled={plan.name === 'Business'}
+                  >
+                    {plan.name === 'Trial' ? 'Start Free' : plan.name === 'Business' ? 'Coming Soon' : 'Get Started'}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
         {/* Final CTA */}
         <div 
           className="text-center bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl p-8 md:p-12 backdrop-blur-sm border border-primary/10 shadow-elegant"
@@ -350,63 +413,6 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-accent/2 to-background/50 backdrop-blur-sm">
-        <div 
-          className="text-center mb-16"
-          style={{ transform: `translateY(${scrollY * 0.04}px)` }}
-        >
-          <h3 className="text-3xl font-bold text-foreground mb-4">
-            Simple, Transparent Pricing
-          </h3>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that fits your needs. Start free and upgrade as you grow.
-          </p>
-        </div>
-
-        <div 
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"
-          style={{ transform: `translateY(${scrollY * 0.025}px)` }}
-        >
-          {plans.map((plan, index) => (
-            <Card key={index} className={`${plan.color} relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-card/90`}>
-              {plan.popular && (
-                <div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 text-sm">
-                  Most Popular
-                </div>
-              )}
-              <CardHeader className="text-center pb-4">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <div className="text-primary">{plan.icon}</div>
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                </div>
-                <div className="mb-2">
-                  <span className="text-3xl font-bold">{plan.price}</span>
-                  <span className="text-muted-foreground">{plan.period}</span>
-                </div>
-                <p className="text-muted-foreground">{plan.description}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  onClick={plan.name === 'Business' ? undefined : onGetStarted}
-                  className={`w-full ${plan.name === 'Business' ? 'bg-gray-400 cursor-not-allowed' : plan.buttonColor} text-white shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105`}
-                  disabled={plan.name === 'Business'}
-                >
-                  {plan.name === 'Trial' ? 'Start Free' : plan.name === 'Business' ? 'Coming Soon' : 'Get Started'}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
 
 
       {/* Footer */}
