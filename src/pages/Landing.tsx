@@ -92,9 +92,11 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
       <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <Clock className="h-5 w-5 text-white" />
-            </div>
+            <img 
+              src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
+              alt="SoloFlow Logo" 
+              className="h-8 w-8"
+            />
             <h1 className="text-xl font-bold text-foreground">SoloFlow</h1>
           </div>
           <Button onClick={onGetStarted} variant="outline">
@@ -234,9 +236,11 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-white" />
-                </div>
+                <img 
+                  src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
+                  alt="SoloFlow Logo" 
+                  className="h-8 w-8"
+                />
                 <h3 className="text-xl font-bold text-foreground">SoloFlow</h3>
               </div>
               <p className="text-muted-foreground text-sm">
