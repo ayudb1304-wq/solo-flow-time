@@ -195,6 +195,161 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-secondary/3 to-accent/3 backdrop-blur-sm">
+        <div 
+          className="text-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.03}px)` }}
+        >
+          <h3 className="text-3xl font-bold text-foreground mb-4">
+            Your Freelance Command Center, Simplified
+          </h3>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            See how SoloFlow transforms your chaotic workflow into an organized, efficient system
+          </p>
+        </div>
+
+        {/* Step 1: Dashboard */}
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.02}px)` }}
+        >
+          <div className="order-2 lg:order-1">
+            <img 
+              src="/lovable-uploads/af2340bb-6107-4732-8fe9-c5fbd41fce9a.png" 
+              alt="SoloFlow Dashboard Overview" 
+              className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+            />
+          </div>
+          <div className="order-1 lg:order-2 space-y-4">
+            <h4 className="text-2xl font-bold text-foreground">See Everything That Matters, Instantly</h4>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Say goodbye to scattered information. Your SoloFlow dashboard provides a clear overview of your active projects, recent activity, and quick access to start tracking time. Get a bird's-eye view of your freelance world without feeling overwhelmed.
+            </p>
+          </div>
+        </div>
+
+        {/* Step 2: Clients */}
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.025}px)` }}
+        >
+          <div className="space-y-4">
+            <h4 className="text-2xl font-bold text-foreground">A Single Hub for Your Clients</h4>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Stop hunting through emails and spreadsheets for client information. SoloFlow gives you one simple, clean directory for every client. Add contacts in seconds and have all their details in one organized hub, ready for any new project.
+            </p>
+          </div>
+          <div>
+            <img 
+              src="/lovable-uploads/c3393c10-c430-44ba-8a9c-057552675889.png" 
+              alt="SoloFlow Clients Management" 
+              className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+            />
+          </div>
+        </div>
+
+        {/* Step 3: Projects */}
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.02}px)` }}
+        >
+          <div className="order-2 lg:order-1">
+            <img 
+              src="/lovable-uploads/0c8eb70d-22bc-4d29-8c3a-56689c725cb6.png" 
+              alt="SoloFlow Projects Organization" 
+              className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+            />
+          </div>
+          <div className="order-1 lg:order-2 space-y-4">
+            <h4 className="text-2xl font-bold text-foreground">Organize Projects with Perfect Clarity</h4>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Finally, an end to confusing project lists. Create a new project and instantly link it to a client from your directory. See all your active work at a glance and know exactly who you're working for, eliminating guesswork.
+            </p>
+          </div>
+        </div>
+
+        {/* Step 4: Tasks */}
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.025}px)` }}
+        >
+          <div className="space-y-4">
+            <h4 className="text-2xl font-bold text-foreground">Focus on Simple, Actionable To-Dos</h4>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              No complex timelines or Gantt charts. Inside each project is a straightforward to-do list. Quickly add the tasks you need to accomplish to keep your project moving forward. It's the simple, functional checklist you've always wanted.
+            </p>
+          </div>
+          <div>
+            <img 
+              src="/lovable-uploads/58636014-5a12-483e-bf06-caf275ac083d.png" 
+              alt="SoloFlow Task Management" 
+              className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+            />
+          </div>
+        </div>
+
+        {/* Step 5: Time Tracking */}
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.02}px)` }}
+        >
+          <div className="order-2 lg:order-1">
+            <img 
+              src="/lovable-uploads/4fa64490-8be7-413e-a798-7f38b0e29600.png" 
+              alt="SoloFlow Time Tracking" 
+              className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+            />
+          </div>
+          <div className="order-1 lg:order-2 space-y-4">
+            <h4 className="text-2xl font-bold text-foreground">Log Billable Hours, Effortlessly</h4>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Forget manual timers or spreadsheet formulas. A "Start" button lives right next to every task. Click it to start tracking your billable hours with perfect accuracy. Click "Stop" when you're done. Every second is logged and ready for invoicing.
+            </p>
+          </div>
+        </div>
+
+        {/* Step 6: Invoices */}
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-16"
+          style={{ transform: `translateY(${scrollY * 0.025}px)` }}
+        >
+          <div className="space-y-4">
+            <h4 className="text-2xl font-bold text-foreground">Turn Your Hard Work into an Invoice</h4>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              This is the magic moment. Select a project, and SoloFlow automatically gathers all your unbilled time entries into a professional, clean invoice. No more manual calculations or copy-pasting. Get paid faster and for every minute you work.
+            </p>
+          </div>
+          <div>
+            <img 
+              src="/lovable-uploads/d05ad3d7-f405-4837-aaeb-46fd7404ffc4.png" 
+              alt="SoloFlow Invoice Generation" 
+              className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+            />
+          </div>
+        </div>
+
+        {/* Final CTA */}
+        <div 
+          className="text-center bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl p-8 md:p-12 backdrop-blur-sm border border-primary/10 shadow-elegant"
+          style={{ transform: `translateY(${scrollY * 0.015}px)` }}
+        >
+          <h4 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+            Stop Juggling. Start Flowing.
+          </h4>
+          <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Join thousands of freelancers who've simplified their workflow and increased their earnings
+          </p>
+          <Button 
+            onClick={onGetStarted}
+            size="lg" 
+            className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90 shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+          >
+            Get Started for Free
+          </Button>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-accent/2 to-background/50 backdrop-blur-sm">
         <div 
