@@ -349,46 +349,48 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </div>
 
           <div 
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"
+            className="flex justify-center items-center"
             style={{ transform: `translateY(${scrollY * 0.025}px)` }}
           >
-            {plans.map((plan, index) => (
-              <Card key={index} className={`${plan.color} relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-card/90`}>
-                {plan.popular && (
-                  <div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 text-sm">
-                    Most Popular
-                  </div>
-                )}
-                <CardHeader className="text-center pb-4">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="text-primary">{plan.icon}</div>
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  </div>
-                  <div className="mb-2">
-                    <span className="text-3xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
-                  </div>
-                  <p className="text-muted-foreground">{plan.description}</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button 
-                    onClick={plan.name === 'Business' ? undefined : onGetStarted}
-                    className={`w-full ${plan.name === 'Business' ? 'bg-gray-400 cursor-not-allowed' : plan.buttonColor} text-white shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105`}
-                    disabled={plan.name === 'Business'}
-                  >
-                    {plan.name === 'Trial' ? 'Start Free' : plan.name === 'Business' ? 'Coming Soon' : 'Get Started'}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full justify-items-center">
+              {plans.map((plan, index) => (
+                <Card key={index} className={`${plan.color} relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-card/90`}>
+                  {plan.popular && (
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 text-sm">
+                      Most Popular
+                    </div>
+                  )}
+                  <CardHeader className="text-center pb-4">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="text-primary">{plan.icon}</div>
+                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-3xl font-bold">{plan.price}</span>
+                      <span className="text-muted-foreground">{plan.period}</span>
+                    </div>
+                    <p className="text-muted-foreground">{plan.description}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-center gap-2">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button 
+                      onClick={plan.name === 'Business' ? undefined : onGetStarted}
+                      className={`w-full ${plan.name === 'Business' ? 'bg-gray-400 cursor-not-allowed' : plan.buttonColor} text-white shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105`}
+                      disabled={plan.name === 'Business'}
+                    >
+                      {plan.name === 'Trial' ? 'Start Free' : plan.name === 'Business' ? 'Coming Soon' : 'Get Started'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
 
