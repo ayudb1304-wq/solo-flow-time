@@ -197,10 +197,11 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
                   ))}
                 </ul>
                 <Button 
-                  onClick={onGetStarted}
-                  className={`w-full ${plan.buttonColor} text-white`}
+                  onClick={plan.name === 'Business' ? undefined : onGetStarted}
+                  className={`w-full ${plan.name === 'Business' ? 'bg-gray-400 cursor-not-allowed' : plan.buttonColor} text-white`}
+                  disabled={plan.name === 'Business'}
                 >
-                  {plan.name === 'Trial' ? 'Start Free' : 'Get Started'}
+                  {plan.name === 'Trial' ? 'Start Free' : plan.name === 'Business' ? 'Coming Soon' : 'Get Started'}
                 </Button>
               </CardContent>
             </Card>
