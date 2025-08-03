@@ -365,7 +365,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
         </div>
 
         <div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"
           style={{ transform: `translateY(${scrollY * 0.025}px)` }}
         >
           {plans.map((plan, index) => (
