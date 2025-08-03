@@ -354,7 +354,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           className="flex justify-center items-center w-full"
           style={{ transform: `translateY(${scrollY * 0.025}px)` }}
         >
-          <div className="flex flex-col sm:flex-row gap-8 items-center justify-center max-w-4xl w-full px-4">
+          <div className="flex flex-col sm:flex-row gap-8 items-center justify-center max-w-4xl w-full px-4 min-h-[60vh]">
             {plans.map((plan, index) => (
               <Card key={index} className={`${plan.color} relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-card/90 w-full max-w-sm`}>
                 {plan.popular && (
