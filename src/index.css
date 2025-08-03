@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* SoloFlow Design System - Professional Freelancer App */
 
 @layer base {
