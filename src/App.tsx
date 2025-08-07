@@ -18,9 +18,41 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
-  const { user, loading } = useAuth();
+const AppRoutes = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/" element={<Landing onGetStarted={() => navigate("/auth")} />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
+        <Route path="/shipping" element={<ShippingPolicy />} />
+        <Route path="*" element={<Landing onGetStarted={() => navigate("/auth")} />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/contact" element={<ContactUs />} />
+      <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
+      <Route path="/shipping" element={<ShippingPolicy />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+const AppContent = () => {
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -33,36 +65,9 @@ const AppContent = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing onGetStarted={() => navigate("/auth")} />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
-          <Route path="/shipping" element={<ShippingPolicy />} />
-          <Route path="*" element={<Landing onGetStarted={() => navigate("/auth")} />} />
-        </Routes>
-      </BrowserRouter>
-    );
-  }
-
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
-        <Route path="/shipping" element={<ShippingPolicy />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 };
