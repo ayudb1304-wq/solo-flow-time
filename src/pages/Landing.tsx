@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Users, FileText, BarChart3, Zap, Star, Check } from "lucide-react";
+import { Clock, Users, FileText, BarChart3, Zap, Star, Check, ArrowRight, Sparkles, Shield, Crown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
@@ -44,106 +44,172 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
   const plans = [
     {
       icon: <Star className="h-5 w-5" />,
-      name: "Trial",
+      name: "Starter",
       price: "Free",
       period: "Forever",
       description: "Perfect for getting started",
       features: [
         "Up to 3 clients",
-        "Up to 5 projects",
+        "Up to 5 projects", 
         "Basic time tracking",
         "Simple invoicing",
         "Basic reports"
       ],
-      color: "border-gray-200",
-      buttonColor: "bg-gray-600 hover:bg-gray-700"
+      gradient: "from-slate-100 to-slate-200",
+      borderGradient: "from-slate-300 to-slate-400",
+      buttonVariant: "secondary" as const
     },
     {
-      icon: <Zap className="h-5 w-5" />,
-      name: "Pro",
+      icon: <Crown className="h-5 w-5" />,
+      name: "Professional",
       price: "₹799",
       period: "/month",
-      description: "For growing freelancers",
+      description: "For serious freelancers & agencies",
       features: [
         "Unlimited clients & projects",
-        "Advanced invoicing",
-        "Detailed reports",
-        "Priority support",
-        "Export capabilities"
+        "Advanced invoicing with branding",
+        "Comprehensive analytics & insights", 
+        "Priority email support",
+        "Data export & backup",
+        "Custom invoice templates",
+        "Advanced reporting dashboard"
       ],
-      color: "border-blue-200 border-2",
-      buttonColor: "bg-blue-600 hover:bg-blue-700",
-      popular: true
+      gradient: "from-primary/20 via-primary/10 to-primary/5",
+      borderGradient: "from-primary via-primary/80 to-primary/60",
+      buttonVariant: "default" as const,
+      popular: true,
+      premium: true
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden">
-      {/* Parallax background elements */}
-      <div className="fixed inset-0 pointer-events-none">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/3 overflow-hidden relative">
+      {/* Premium background elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Gradient orbs */}
         <div 
-          className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full blur-xl animate-pulse"
-          style={{ transform: `translateY(${scrollY * 0.1}px)` }}
-        ></div>
+          className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent rounded-full blur-3xl animate-pulse"
+          style={{ transform: `translateY(${scrollY * 0.1}px) rotate(${scrollY * 0.05}deg)` }}
+        />
         <div 
-          className="absolute top-40 right-20 w-24 h-24 bg-secondary/10 rounded-full blur-lg animate-pulse delay-1000"
-          style={{ transform: `translateY(${scrollY * 0.15}px)` }}
-        ></div>
+          className="absolute top-1/4 -right-40 w-96 h-96 bg-gradient-to-bl from-secondary/15 via-accent/10 to-transparent rounded-full blur-3xl animate-pulse delay-1000"
+          style={{ transform: `translateY(${scrollY * 0.15}px) rotate(${scrollY * -0.03}deg)` }}
+        />
         <div 
-          className="absolute bottom-40 left-1/4 w-40 h-40 bg-accent/5 rounded-full blur-xl animate-pulse delay-2000"
-          style={{ transform: `translateY(${scrollY * -0.1}px)` }}
-        ></div>
+          className="absolute -bottom-40 left-1/3 w-72 h-72 bg-gradient-to-tr from-accent/20 via-primary/5 to-transparent rounded-full blur-3xl animate-pulse delay-2000"
+          style={{ transform: `translateY(${scrollY * -0.1}px) rotate(${scrollY * 0.08}deg)` }}
+        />
+        
+        {/* Floating particles */}
         <div 
-          className="absolute top-1/2 right-1/4 w-20 h-20 bg-primary/8 rounded-full blur-md animate-pulse delay-3000"
-          style={{ transform: `translateY(${scrollY * 0.2}px)` }}
-        ></div>
+          className="absolute top-1/3 left-1/4 w-2 h-2 bg-primary/40 rounded-full animate-pulse delay-500"
+          style={{ transform: `translateY(${scrollY * 0.3}px)` }}
+        />
+        <div 
+          className="absolute top-2/3 right-1/3 w-1.5 h-1.5 bg-accent/50 rounded-full animate-pulse delay-1500"
+          style={{ transform: `translateY(${scrollY * 0.25}px)` }}
+        />
+        <div 
+          className="absolute top-1/2 left-2/3 w-1 h-1 bg-secondary/60 rounded-full animate-pulse delay-3000"
+          style={{ transform: `translateY(${scrollY * 0.4}px)` }}
+        />
       </div>
-      {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50 shadow-elegant">
+      {/* Premium Header */}
+      <header className="border-b border-border/20 bg-background/90 backdrop-blur-xl sticky top-0 z-50 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <img 
-              src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
-              alt="SoloFlow Logo" 
-              className="h-8 w-8"
-            />
-            <h1 className="text-xl font-bold text-foreground">SoloFlow</h1>
+            <div className="relative">
+              <img 
+                src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
+                alt="SoloFlow Logo" 
+                className="h-8 w-8"
+              />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-primary rounded-full animate-pulse" />
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+              SoloFlow
+            </h1>
+            <div className="hidden sm:flex items-center gap-1 ml-2 px-2 py-1 bg-primary/10 rounded-full">
+              <Sparkles className="w-3 h-3 text-primary" />
+              <span className="text-xs font-medium text-primary">Premium</span>
+            </div>
           </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
-            <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How it Works</a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+          <nav className="hidden md:flex items-center gap-8">
+            <a href="#features" className="text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-105 font-medium">Features</a>
+            <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-105 font-medium">How it Works</a>
+            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-105 font-medium">Pricing</a>
           </nav>
-          <Button onClick={onGetStarted} variant="outline">
-            Sign In
+          <Button 
+            onClick={onGetStarted} 
+            variant="outline" 
+            className="border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 hover:scale-105"
+          >
+            <span className="flex items-center gap-2">
+              Sign In
+              <ArrowRight className="w-4 h-4" />
+            </span>
           </Button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-12 md:py-20 text-center relative z-10 bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-sm">
+      {/* Premium Hero Section */}
+      <section className="container mx-auto px-4 py-16 md:py-28 text-center relative z-10">
         <div 
-          className="max-w-4xl mx-auto"
+          className="max-w-5xl mx-auto"
           style={{ transform: `translateY(${scrollY * 0.05}px)` }}
         >
-          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-            Streamline Your
-            <span className="text-transparent bg-clip-text bg-gradient-primary"> Freelance</span>
-            <br />Business
+          {/* Premium badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full border border-primary/20 mb-8 backdrop-blur-sm">
+            <Crown className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Premium Freelance Management</span>
+            <Sparkles className="w-4 h-4 text-accent" />
+          </div>
+          
+          <h2 className="text-4xl md:text-7xl font-bold mb-8 leading-[0.9] tracking-tight">
+            <span className="text-foreground">Elevate Your</span>
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-accent">
+              Freelance Empire
+            </span>
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
-           The refreshingly simple, all-in-one platform for solo freelancers. 
-           Ditch the spreadsheets and complex tools. Focus on your work, 
-            not your software.
+          
+          <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed max-w-3xl mx-auto font-light">
+            The sophisticated, all-in-one platform for premium freelancers and agencies. 
+            <br className="hidden md:block" />
+            <span className="text-foreground/80 font-medium">Transform chaos into profit</span> with enterprise-grade tools designed for excellence.
           </p>
-          <div className="flex justify-center">
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               onClick={onGetStarted}
               size="lg" 
-              className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 bg-gradient-primary hover:opacity-90 shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
+              className="text-lg px-8 py-6 bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)] transition-all duration-500 hover:scale-105 border-0 group"
             >
-              Start Free Trial
+              <span className="flex items-center gap-3">
+                Start Your Premium Journey
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
             </Button>
+            
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Shield className="w-4 h-4 text-green-500" />
+              <span>Free forever starter plan • No credit card required</span>
+            </div>
+          </div>
+          
+          {/* Social proof */}
+          <div className="mt-16 flex flex-col items-center gap-4">
+            <p className="text-sm text-muted-foreground font-medium">Trusted by premium freelancers worldwide</p>
+            <div className="flex items-center gap-8 opacity-60">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                ))}
+                <span className="ml-2 text-sm font-medium text-foreground">4.9/5</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <span className="text-sm font-medium text-foreground">10,000+ Active Users</span>
+            </div>
           </div>
         </div>
       </section>
@@ -320,17 +386,26 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
 
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="container mx-auto px-4 py-20 md:py-32 mt-16 md:mt-24 relative z-10 bg-gradient-to-b from-accent/2 to-background/50 backdrop-blur-sm flex flex-col items-center justify-center min-h-[80vh]">
+      {/* Premium Pricing Section */}
+      <section id="pricing" className="container mx-auto px-4 py-24 md:py-40 mt-20 md:mt-32 relative z-10 bg-gradient-to-b from-background/95 via-primary/2 to-background/90 backdrop-blur-sm flex flex-col items-center justify-center min-h-[90vh]">
         <div 
-          className="text-center mb-16"
+          className="text-center mb-20"
           style={{ transform: `translateY(${scrollY * 0.04}px)` }}
         >
-          <h3 className="text-3xl font-bold text-foreground mb-4">
-            Simple, Transparent Pricing
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full border border-primary/20 mb-6 backdrop-blur-sm">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Premium Plans</span>
+          </div>
+          
+          <h3 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+            Invest in Your
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+              Professional Growth
+            </span>
           </h3>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that fits your needs. Start free and upgrade as you grow.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
+            Choose the perfect plan to scale your freelance business. Start free, upgrade when you're ready to unlock your full potential.
           </p>
         </div>
 
@@ -339,38 +414,80 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           style={{ transform: `translateY(${scrollY * 0.025}px)` }}
         >
           <div className="flex flex-col sm:flex-row gap-8 items-center justify-center max-w-4xl w-full px-4 min-h-[60vh]">
-            {plans.map((plan, index) => (
-              <Card key={index} className={`${plan.color} relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 backdrop-blur-sm bg-card/90 w-full max-w-sm`}>
+          {plans.map((plan, index) => (
+              <Card 
+                key={index} 
+                className={`relative overflow-hidden transition-all duration-500 hover:scale-105 w-full max-w-sm group ${
+                  plan.premium 
+                    ? 'border-2 border-transparent bg-gradient-to-br ' + plan.gradient + ' shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.2)]' 
+                    : 'border border-border/50 bg-card/80 backdrop-blur-sm shadow-elegant hover:shadow-glow'
+                }`}
+                style={plan.premium ? {
+                  backgroundImage: `linear-gradient(135deg, hsl(var(--primary) / 0.05), hsl(var(--primary) / 0.02))`,
+                  borderImage: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))) 1'
+                } : {}}
+              >
                 {plan.popular && (
-                  <div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 text-sm">
-                    Most Popular
+                  <div className="absolute -top-0 -right-0 bg-gradient-to-r from-primary to-accent text-white px-4 py-2 text-sm font-medium transform rotate-45 translate-x-8 translate-y-4">
+                    <div className="transform -rotate-45 -translate-x-2">
+                      Most Popular
+                    </div>
                   </div>
                 )}
-                <CardHeader className="text-center pb-4">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="text-primary">{plan.icon}</div>
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
+                
+                {plan.premium && (
+                  <div className="absolute top-4 left-4 flex items-center gap-1 px-2 py-1 bg-primary/20 rounded-full backdrop-blur-sm">
+                    <Crown className="w-3 h-3 text-primary" />
+                    <span className="text-xs font-medium text-primary">Premium</span>
                   </div>
-                  <div className="mb-2">
-                    <span className="text-3xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                )}
+                
+                <CardHeader className="text-center pb-6 relative">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className={`p-3 rounded-full ${plan.premium ? 'bg-gradient-to-r from-primary/20 to-accent/20' : 'bg-muted/50'} group-hover:scale-110 transition-transform duration-300`}>
+                      <div className={plan.premium ? 'text-primary' : 'text-muted-foreground'}>
+                        {plan.icon}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-muted-foreground">{plan.description}</p>
+                  <CardTitle className={`text-2xl mb-2 ${plan.premium ? 'text-foreground' : 'text-foreground'}`}>
+                    {plan.name}
+                  </CardTitle>
+                  <div className="mb-4">
+                    <span className={`text-4xl font-bold ${plan.premium ? 'bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent' : 'text-foreground'}`}>
+                      {plan.price}
+                    </span>
+                    <span className="text-muted-foreground ml-1">{plan.period}</span>
+                  </div>
+                  <p className="text-muted-foreground font-medium">{plan.description}</p>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
+                
+                <CardContent className="space-y-6">
+                  <ul className="space-y-4">
                     {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span className="text-sm">{feature}</span>
+                      <li key={featureIndex} className="flex items-start gap-3">
+                        <div className={`p-1 rounded-full ${plan.premium ? 'bg-primary/20' : 'bg-green-500/20'} mt-0.5`}>
+                          <Check className={`h-3 w-3 ${plan.premium ? 'text-primary' : 'text-green-600'}`} />
+                        </div>
+                        <span className="text-sm leading-relaxed font-medium text-foreground/90">{feature}</span>
                       </li>
                     ))}
                   </ul>
+                  
                   <Button 
                     onClick={onGetStarted}
-                    className={`w-full ${plan.buttonColor} text-white shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105`}
+                    variant={plan.buttonVariant}
+                    size="lg"
+                    className={`w-full transition-all duration-300 hover:scale-105 font-medium ${
+                      plan.premium 
+                        ? 'bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.3)] border-0' 
+                        : 'shadow-elegant hover:shadow-glow'
+                    }`}
                   >
-                    {plan.name === 'Trial' ? 'Start Free' : 'Get Started'}
+                    <span className="flex items-center gap-2">
+                      {plan.name === 'Starter' ? 'Start Free' : 'Upgrade to Pro'}
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    </span>
                   </Button>
                 </CardContent>
               </Card>
