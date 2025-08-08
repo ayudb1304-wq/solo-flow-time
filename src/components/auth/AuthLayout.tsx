@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
-import { ThreeBackground } from "@/components/ThreeBackground";
 import { Sparkles, Crown, Shield } from "lucide-react";
 
 interface AuthLayoutProps {
@@ -10,13 +9,16 @@ interface AuthLayoutProps {
 export const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-primary/5 to-accent/10">
-      <ThreeBackground />
-      
-      {/* Premium background elements */}
+      {/* Simplified background elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-tl from-accent/15 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-3/4 left-1/2 w-48 h-48 bg-gradient-to-tr from-secondary/25 to-transparent rounded-full blur-2xl animate-pulse delay-2000" />
+        
+        {/* Floating particles */}
+        <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-primary/40 rounded-full animate-pulse delay-500" />
+        <div className="absolute top-2/3 right-1/3 w-1.5 h-1.5 bg-accent/50 rounded-full animate-pulse delay-1500" />
+        <div className="absolute top-1/2 left-2/3 w-1 h-1 bg-secondary/60 rounded-full animate-pulse delay-3000" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">

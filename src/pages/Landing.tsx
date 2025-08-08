@@ -436,19 +436,17 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           {plans.map((plan, index) => (
               <Card 
                 key={index} 
-                className={`relative overflow-hidden transition-all duration-500 hover:scale-105 w-full max-w-sm group ${
+                className={`relative overflow-visible transition-all duration-500 hover:scale-105 w-full max-w-sm group ${
                   plan.premium 
-                    ? 'border-2 border-transparent bg-gradient-to-br ' + plan.gradient + ' shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.2)]' 
+                    ? 'border-2 bg-gradient-to-br from-primary/5 to-accent/5 shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.2)] border-primary/30' 
                     : 'border border-border/50 bg-card/80 backdrop-blur-sm shadow-elegant hover:shadow-glow'
                 }`}
-                style={plan.premium ? {
-                  backgroundImage: `linear-gradient(135deg, hsl(var(--primary) / 0.05), hsl(var(--primary) / 0.02))`,
-                  borderImage: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))) 1'
-                } : {}}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-primary to-accent text-white px-3 py-1 text-xs font-bold rounded-full border-2 border-background shadow-lg z-10">
-                    ⭐ Most Popular
+                  <div className="absolute -top-2 -right-2 z-20">
+                    <div className="bg-gradient-to-r from-primary to-accent text-white px-3 py-1 text-xs font-bold rounded-full border-2 border-background shadow-lg">
+                      ⭐ Most Popular
+                    </div>
                   </div>
                 )}
                 
