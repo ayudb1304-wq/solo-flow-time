@@ -100,19 +100,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           style={{ transform: `translateY(${scrollY * -0.1}px) rotate(${scrollY * 0.08}deg)` }}
         />
         
-        {/* Floating particles */}
-        <div 
-          className="absolute top-1/3 left-1/4 w-2 h-2 bg-primary/40 rounded-full animate-pulse delay-500"
-          style={{ transform: `translateY(${scrollY * 0.3}px)` }}
-        />
-        <div 
-          className="absolute top-2/3 right-1/3 w-1.5 h-1.5 bg-accent/50 rounded-full animate-pulse delay-1500"
-          style={{ transform: `translateY(${scrollY * 0.25}px)` }}
-        />
-        <div 
-          className="absolute top-1/2 left-2/3 w-1 h-1 bg-secondary/60 rounded-full animate-pulse delay-3000"
-          style={{ transform: `translateY(${scrollY * 0.4}px)` }}
-        />
+        {/* Floating particles removed */}
       </div>
       {/* Premium Header */}
       <header className="border-b border-border/20 bg-background/90 backdrop-blur-xl sticky top-0 z-50 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
