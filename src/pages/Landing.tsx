@@ -250,36 +250,55 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* How It Works Section with Enhanced Parallax */}
       <section id="how-it-works" className="container mx-auto px-4 py-12 md:py-20 relative z-10 bg-gradient-to-b from-secondary/3 to-accent/3 backdrop-blur-sm">
         <div 
           className="text-center mb-16"
           style={{ transform: `translateY(${scrollY * 0.03}px)` }}
         >
-          <h3 className="text-3xl font-bold text-foreground mb-4">
-            Your Freelance Command Center, Simplified
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full border border-primary/20 mb-6 backdrop-blur-sm">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Workflow Excellence</span>
+          </div>
+          
+          <h3 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+            Your Freelance
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+              Command Center
+            </span>
           </h3>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            See how SoloFlow transforms your chaotic workflow into an organized, efficient system
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
+            See how SoloFlow transforms your chaotic workflow into an organized, efficient system that scales with your ambitions.
           </p>
         </div>
 
-        {/* Step 1: Dashboard */}
+        {/* Step 1: Dashboard with Enhanced Parallax */}
         <div 
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-16"
-          style={{ transform: `translateY(${scrollY * 0.02}px)` }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-20"
+          style={{ transform: `translateY(${scrollY * 0.02}px) translateX(${scrollY * 0.01}px)` }}
         >
           <div className="order-2 lg:order-1">
-            <img 
-              src="/lovable-uploads/af2340bb-6107-4732-8fe9-c5fbd41fce9a.png" 
-              alt="SoloFlow Dashboard Overview" 
-              className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
-            />
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-lg blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <img 
+                src="/lovable-uploads/af2340bb-6107-4732-8fe9-c5fbd41fce9a.png" 
+                alt="SoloFlow Dashboard Overview" 
+                className="w-full rounded-lg shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.2)] transition-all duration-500 hover:scale-105 relative z-10"
+                style={{ transform: `translateY(${scrollY * -0.01}px)` }}
+              />
+            </div>
           </div>
-          <div className="order-1 lg:order-2 space-y-4">
-            <h4 className="text-2xl font-bold text-foreground">See Everything That Matters, Instantly</h4>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Say goodbye to scattered information. Your SoloFlow dashboard provides a clear overview of your active projects, recent activity, and quick access to start tracking time. Get a bird's-eye view of your freelance world without feeling overwhelmed.
+          <div 
+            className="order-1 lg:order-2 space-y-6"
+            style={{ transform: `translateY(${scrollY * 0.015}px)` }}
+          >
+            <h4 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
+              See Everything That Matters,
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent"> Instantly</span>
+            </h4>
+            <p className="text-lg text-muted-foreground leading-relaxed font-light">
+              Say goodbye to scattered information. Your SoloFlow dashboard provides a crystal-clear overview of your active projects, recent activity, and quick access to start tracking time. Get a bird's-eye view of your freelance empire without feeling overwhelmed.
             </p>
           </div>
         </div>
@@ -428,10 +447,8 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
                 } : {}}
               >
                 {plan.popular && (
-                  <div className="absolute -top-0 -right-0 bg-gradient-to-r from-primary to-accent text-white px-4 py-2 text-sm font-medium transform rotate-45 translate-x-8 translate-y-4">
-                    <div className="transform -rotate-45 -translate-x-2">
-                      Most Popular
-                    </div>
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-primary to-accent text-white px-3 py-1 text-xs font-bold rounded-full border-2 border-background shadow-lg z-10">
+                    ⭐ Most Popular
                   </div>
                 )}
                 
