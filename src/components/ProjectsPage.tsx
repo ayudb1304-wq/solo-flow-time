@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Plus, Eye, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Plus, Eye, Search, Briefcase, FolderOpen, Calendar, Building, Crown, Sparkles, Target, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -168,57 +169,77 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
   );
 
   if (loading) {
-    return <div className="p-6">Loading projects...</div>;
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading projects...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Projects</h1>
-          <p className="text-muted-foreground">Manage your client projects</p>
+    <div className="p-6 space-y-8">
+      {/* Header Section */}
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full border border-primary/20 mb-4">
+          <Crown className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-primary">Project Portfolio</span>
         </div>
-        
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search projects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full sm:w-64"
-            />
-          </div>
-        
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="flex items-center gap-2"
-                disabled={!checkLimit('maxProjects', projects.length).allowed}
-              >
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Your Projects
+        </h1>
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          Organize and track all your client projects in one powerful dashboard
+        </p>
+      </div>
+      
+      {/* Actions Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search projects or clients..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-11 bg-background/50 border-border/50 focus:border-primary/50"
+          />
+        </div>
+      
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              className="flex items-center gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg h-11 px-6"
+              disabled={!checkLimit('maxProjects', projects.length).allowed}
+            >
               <Plus className="h-4 w-4" />
-              Add Project
+              New Project
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Project</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Create New Project
+              </DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="project-name">Project Name</Label>
+            <div className="grid gap-6 py-4">
+              <div className="grid gap-3">
+                <Label htmlFor="project-name" className="text-sm font-medium">Project Name</Label>
                 <Input
                   id="project-name"
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
                   placeholder="Enter project name"
+                  className="h-11"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="client">Client</Label>
+              <div className="grid gap-3">
+                <Label htmlFor="client" className="text-sm font-medium">Select Client</Label>
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a client" />
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Choose a client" />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
@@ -229,15 +250,73 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleAddProject} disabled={!newProjectName.trim() || !selectedClientId}>
+              <Button 
+                onClick={handleAddProject} 
+                disabled={!newProjectName.trim() || !selectedClientId}
+                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 h-11"
+              >
                 Create Project
               </Button>
             </div>
           </DialogContent>
-          </Dialog>
-        </div>
+        </Dialog>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="relative overflow-hidden group bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200/50 dark:from-blue-950/50 dark:to-cyan-950/50 dark:border-blue-800/50">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+            <CardTitle className="text-sm font-medium text-blue-600 dark:text-blue-400">Active Projects</CardTitle>
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
+              <FolderOpen className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="text-3xl font-bold text-blue-700 dark:text-blue-300">{filteredProjects.length}</div>
+            <p className="text-sm text-blue-600/70 dark:text-blue-400/70 mt-1">Currently running</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="relative overflow-hidden group bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50 dark:from-green-950/50 dark:to-emerald-950/50 dark:border-green-800/50">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+            <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400">This Month</CardTitle>
+            <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg">
+              <TrendingUp className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="text-3xl font-bold text-green-700 dark:text-green-300">
+              +{projects.filter(p => new Date(p.created_at).getMonth() === new Date().getMonth()).length}
+            </div>
+            <p className="text-sm text-green-600/70 dark:text-green-400/70 mt-1">New projects</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="relative overflow-hidden group bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200/50 dark:from-purple-950/50 dark:to-pink-950/50 dark:border-purple-800/50">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+            <CardTitle className="text-sm font-medium text-purple-600 dark:text-purple-400">Average Duration</CardTitle>
+            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+              <Calendar className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="text-3xl font-bold text-purple-700 dark:text-purple-300">
+              {projects.length > 0 ? Math.round(
+                projects.reduce((acc, project) => {
+                  const daysSinceCreation = Math.floor((Date.now() - new Date(project.created_at).getTime()) / (1000 * 60 * 60 * 24));
+                  return acc + daysSinceCreation;
+                }, 0) / projects.length
+              ) : 0}d
+            </div>
+            <p className="text-sm text-purple-600/70 dark:text-purple-400/70 mt-1">Per project</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Upgrade Prompt */}
       {!checkLimit('maxProjects', projects.length).allowed && (
         <UpgradePrompt
           title="Project Limit Reached"
@@ -246,57 +325,94 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
         />
       )}
 
+      {/* Projects Grid */}
       {filteredProjects.length === 0 && searchTerm ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <h3 className="text-lg font-semibold mb-2">No projects found</h3>
-            <p className="text-muted-foreground mb-4">Try adjusting your search terms</p>
-            <Button onClick={() => setSearchTerm("")}>Clear Search</Button>
+        <Card className="border-0 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center mb-6">
+              <Search className="h-10 w-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No projects found</h3>
+            <p className="text-muted-foreground mb-6 text-center max-w-md">
+              Try adjusting your search terms or create a new project
+            </p>
+            <Button 
+              onClick={() => setSearchTerm("")}
+              variant="outline"
+              className="border-primary/20 hover:bg-primary/5"
+            >
+              Clear Search
+            </Button>
           </CardContent>
         </Card>
       ) : projects.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-            <p className="text-muted-foreground mb-4">Create your first project to get started</p>
-            <Button onClick={() => setIsDialogOpen(true)}>Add Project</Button>
+        <Card className="border-0 shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center mb-6">
+              <Briefcase className="h-10 w-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
+            <p className="text-muted-foreground mb-6 text-center max-w-md">
+              Start your freelance journey by creating your first project
+            </p>
+            <Button 
+              onClick={() => setIsDialogOpen(true)}
+              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Your First Project
+            </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <Card key={project.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{project.name}</CardTitle>
+            <Card key={project.id} className="group hover:scale-105 transition-all duration-300 border-0 shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.18)] bg-gradient-to-br from-card via-card/95 to-card/90">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-white font-semibold text-lg group-hover:scale-110 transition-transform duration-300">
+                      {project.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors duration-300 truncate">
+                        {project.name}
+                      </CardTitle>
+                      <Badge variant="secondary" className="mt-1 bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
+                        Active
+                      </Badge>
+                    </div>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDeleteProject(project.id)}
-                    className="text-muted-foreground hover:text-destructive"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all duration-300"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Client:</strong> {project.clients.name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Created:</strong> {new Date(project.created_at).toLocaleDateString()}
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-3"
-                    onClick={() => onProjectSelect?.(project.id)}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
+                  <div className="flex items-center text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
+                    <Building className="h-4 w-4 mr-3 text-primary" />
+                    <span className="truncate">{project.clients.name}</span>
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
+                    <Calendar className="h-4 w-4 mr-3 text-primary" />
+                    <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+                  </div>
                 </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full border-primary/20 hover:bg-primary/5 hover:border-primary/40 group-hover:shadow-md transition-all duration-300"
+                  onClick={() => onProjectSelect?.(project.id)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Details
+                </Button>
               </CardContent>
             </Card>
           ))}
