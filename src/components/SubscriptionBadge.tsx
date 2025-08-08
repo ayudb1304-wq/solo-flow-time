@@ -39,7 +39,10 @@ export const SubscriptionBadge = () => {
   };
 
   return (
-    <Badge variant={getPlanVariant(plan)} className="flex items-center">
+    <Badge 
+      variant={getPlanVariant(plan)} 
+      className={`flex items-center ${plan === 'pro' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-amber-400 shadow-lg shadow-amber-500/25' : ''}`}
+    >
       {getPlanIcon(plan)}
       {getPlanLabel(plan)}
     </Badge>

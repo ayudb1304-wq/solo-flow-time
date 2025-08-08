@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 import { SubscriptionBadge } from "./SubscriptionBadge";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const navigation = [
   { name: "Dashboard", icon: LayoutDashboard, key: "dashboard", gradient: "from-blue-500 to-cyan-500" },
@@ -27,6 +28,36 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const PremiumSection = () => {
+  const { plan } = useSubscription();
+  
+  if (plan === 'pro') {
+    return (
+      <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20">
+        <div className="flex items-center gap-2 mb-2">
+          <Crown className="w-4 h-4 text-emerald-500" />
+          <span className="text-xs font-medium text-emerald-500">Pro Plan Active</span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Enjoying unlimited projects and advanced features!
+        </p>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="p-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
+      <div className="flex items-center gap-2 mb-2">
+        <Crown className="w-4 h-4 text-primary" />
+        <span className="text-xs font-medium text-primary">Premium Features</span>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Unlock unlimited projects, advanced reporting, and more.
+      </p>
+    </div>
+  );
+};
 
 export const Sidebar = ({ currentPage, onPageChange, isOpen, onClose }: SidebarProps) => {
   useEffect(() => {
@@ -117,7 +148,7 @@ export const Sidebar = ({ currentPage, onPageChange, isOpen, onClose }: SidebarP
                   )}>
                     <Icon className={cn(
                       "h-4 w-4 transition-all duration-300",
-                      isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground"
+                      isActive ? "text-white" : "text-foreground/80 group-hover:text-foreground"
                     )} />
                     
                     {/* Sparkle effect for active item */}
@@ -140,15 +171,7 @@ export const Sidebar = ({ currentPage, onPageChange, isOpen, onClose }: SidebarP
         
         {/* Bottom section */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/30 bg-gradient-to-t from-card/95 to-transparent">
-          <div className="p-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Crown className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium text-primary">Premium Features</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Unlock unlimited projects, advanced reporting, and more.
-            </p>
-          </div>
+          <PremiumSection />
         </div>
       </div>
     </>
