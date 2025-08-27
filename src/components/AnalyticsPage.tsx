@@ -17,6 +17,7 @@ import {
 import { AnalyticsCharts } from './analytics/AnalyticsCharts';
 import { UpgradePrompt } from './UpgradePrompt';
 import { LoadingSpinner } from './ui/loading-spinner';
+import { useToast } from './ui/use-toast';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
 interface AnalyticsData {
@@ -41,21 +42,53 @@ const DATE_RANGE_OPTIONS = {
 export const AnalyticsPage = () => {
   const { user } = useAuth();
   const { plan } = useSubscription();
+  const { toast } = useToast();
   const [dateRange, setDateRange] = useState<DateRange>('last30');
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [upgrading, setUpgrading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!user) return;
+    
+    setUpgrading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-razorpay-subscription', {
+        body: { planId: 'pro', userId: user.id }
+      });
+
+      if (error) throw error;
+
+      // Open Razorpay payment page
+      window.open(data.short_url, '_blank');
+      
+      toast({
+        title: "Redirecting to payment",
+        description: "You will be redirected to complete your subscription.",
+      });
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      toast({
+        title: "Payment Error",
+        description: "Failed to initiate payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpgrading(false);
+    }
+  };
 
   // Show upgrade prompt for non-pro users
   if (plan !== 'pro') {
     return (
-      <UpgradePrompt 
-        title="Unlock Your Business Insights"
-        message="Upgrade to Pro to access the Analytics Dashboard with comprehensive business metrics, revenue tracking, and actionable insights to grow your freelance business."
-        onUpgrade={() => {
-          // TODO: Implement proper payment system (Stripe/Razorpay)
-          alert('Payment system not configured yet. Please contact support for upgrade options.');
-        }}
-      />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <UpgradePrompt 
+          title="Unlock Your Business Insights"
+          message="Upgrade to Pro to access the Analytics Dashboard with comprehensive business metrics, revenue tracking, and actionable insights to grow your freelance business."
+          onUpgrade={handleUpgrade}
+          loading={upgrading}
+        />
+      </div>
     );
   }
 

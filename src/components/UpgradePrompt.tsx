@@ -7,9 +7,10 @@ interface UpgradePromptProps {
   message: string;
   onUpgrade: () => void;
   variant?: 'default' | 'cancellation';
+  loading?: boolean;
 }
 
-export const UpgradePrompt = ({ title, message, onUpgrade, variant = 'default' }: UpgradePromptProps) => {
+export const UpgradePrompt = ({ title, message, onUpgrade, variant = 'default', loading = false }: UpgradePromptProps) => {
   const iscancellationVariant = variant === 'cancellation';
   
   return (
@@ -28,9 +29,13 @@ export const UpgradePrompt = ({ title, message, onUpgrade, variant = 'default' }
       </CardHeader>
       <CardContent className="text-center space-y-4">
         <p className="text-muted-foreground">{message}</p>
-        <Button onClick={onUpgrade} className={`w-full ${iscancellationVariant ? 'bg-orange-600 hover:bg-orange-700' : ''}`}>
+        <Button 
+          onClick={onUpgrade} 
+          disabled={loading}
+          className={`w-full ${iscancellationVariant ? 'bg-orange-600 hover:bg-orange-700' : ''}`}
+        >
           <Zap className="h-4 w-4 mr-2" />
-          {iscancellationVariant ? 'Resubscribe Now' : 'Upgrade to Pro'}
+          {loading ? 'Processing...' : (iscancellationVariant ? 'Resubscribe Now' : 'Upgrade to Pro')}
         </Button>
       </CardContent>
     </Card>
