@@ -153,10 +153,10 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </div>
           
           <h1 className="text-4xl md:text-7xl font-bold mb-8 leading-[0.9] tracking-tight">
-            <span className="text-foreground">Elevate Your</span>
+            <span className="text-foreground">Get Paid For</span>
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-accent">
-              Freelance Empire
+              Every Minute You Work
             </span>
           </h1>
           
