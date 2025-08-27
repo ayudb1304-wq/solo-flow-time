@@ -113,9 +113,9 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
                 className="h-8 w-8"
               />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+            <strong className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
               SoloFlow
-            </h1>
+            </strong>
             <div className="hidden sm:flex items-center gap-1 ml-2 px-2 py-1 bg-primary/10 rounded-full">
               <Sparkles className="w-3 h-3 text-primary" />
               <span className="text-xs font-medium text-primary">Premium</span>
@@ -152,13 +152,13 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
             <Sparkles className="w-4 h-4 text-accent" />
           </div>
           
-          <h2 className="text-4xl md:text-7xl font-bold mb-8 leading-[0.9] tracking-tight">
+          <h1 className="text-4xl md:text-7xl font-bold mb-8 leading-[0.9] tracking-tight">
             <span className="text-foreground">Elevate Your</span>
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-accent">
               Freelance Empire
             </span>
-          </h2>
+          </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed max-w-3xl mx-auto font-light">
             The sophisticated, all-in-one platform for premium freelancers and agencies. 
@@ -207,11 +207,12 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           className="text-center mb-16"
           style={{ transform: `translateY(${scrollY * 0.03}px)` }}
         >
-          <h3 className="text-3xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl font-bold text-foreground mb-4">
             Finally, an All-in-One Tool That's Actually Simple
-          </h3>
+          </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Powerful features designed to help freelancers and agencies work more efficiently
+            The simple, intuitive alternative to complex project management tools. No steep learning curve, just clarity.
+            <br />Powerful features designed to help freelancers and agencies work more efficiently
           </p>
         </div>
         
