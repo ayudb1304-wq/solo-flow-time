@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, FileText, Send, DollarSign, Download } from "lucide-react";
+import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/hooks/useCurrency";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InvoiceTemplate } from "./InvoiceTemplate";
 
 interface Project {
   id: string;
@@ -54,6 +56,9 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
   });
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [invoiceNumber, setInvoiceNumber] = useState<string>('');
+  const previewRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { formatCurrency, getCurrencySymbol } = useCurrency();
@@ -105,6 +110,10 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
 
       if (timeError) throw timeError;
       setTimeEntries(timeData || []);
+
+      // Generate initial invoice number
+      const invoiceNum = await generateInvoiceNumber();
+      setInvoiceNumber(invoiceNum);
     } catch (error) {
       toast({
         title: "Error",
@@ -148,165 +157,61 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
   };
 
   const downloadInvoicePDF = async () => {
+    if (!previewRef.current) return;
+    
+    setIsGeneratingPDF(true);
+    
     try {
-      const invoiceNumber = await generateInvoiceNumber();
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
+      // Capture the invoice template as a canvas
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2, // Higher resolution
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: previewRef.current.scrollWidth,
+        height: previewRef.current.scrollHeight,
+      });
+
+      // Calculate PDF dimensions
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Get brand color or use default
-      const brandColor = profile?.brand_color || '#3b82f6';
-      const rgbColor = hexToRgb(brandColor);
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
       
-      // Add header background with brand color
-      doc.setFillColor(rgbColor.r, rgbColor.g, rgbColor.b);
-      doc.rect(0, 0, pageWidth, 50, 'F');
+      // Add image to PDF
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       
-      // Add logo if available
-      if (profile?.logo_url) {
-        try {
-          const logoImg = new Image();
-          logoImg.crossOrigin = 'anonymous';
-          await new Promise((resolve, reject) => {
-            logoImg.onload = resolve;
-            logoImg.onerror = reject;
-            logoImg.src = profile.logo_url!;
-          });
-          
-          // Calculate logo dimensions (max 40x20)
-          const maxWidth = 40;
-          const maxHeight = 20;
-          const ratio = Math.min(maxWidth / logoImg.width, maxHeight / logoImg.height);
-          const logoWidth = logoImg.width * ratio;
-          const logoHeight = logoImg.height * ratio;
-          
-          doc.addImage(logoImg, 'PNG', 20, 15, logoWidth, logoHeight);
-        } catch (error) {
-          console.warn('Failed to load logo for PDF:', error);
+      // If the content is longer than one page, we might need multiple pages
+      if (imgHeight > pageHeight) {
+        let heightLeft = imgHeight - pageHeight;
+        let position = -pageHeight;
+        
+        while (heightLeft > 0) {
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+          position -= pageHeight;
         }
       }
       
-      // Invoice title
-      doc.setTextColor(255, 255, 255); // White text
-      doc.setFontSize(28);
-      doc.setFont(undefined, 'bold');
-      doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
-      
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'normal');
-      doc.text(`#${invoiceNumber}`, pageWidth / 2, 40, { align: 'center' });
-      
-      // Reset text color for body
-      doc.setTextColor(0, 0, 0);
-      
-      // From and To sections
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('From:', 20, 70);
-      doc.setFont(undefined, 'normal');
-      if (profile?.freelancer_name) {
-        doc.text(profile.freelancer_name, 20, 82);
-      } else {
-        doc.text('Your Company Name', 20, 82);
-      }
-      if (profile?.company_address) {
-        const addressLines = profile.company_address.split('\n');
-        addressLines.forEach((line, index) => {
-          doc.text(line, 20, 94 + (index * 10));
-        });
-      } else {
-        doc.text('Your Address', 20, 94);
-      }
-      
-      doc.setFont(undefined, 'bold');
-      doc.text('To:', 120, 70);
-      doc.setFont(undefined, 'normal');
-      if (project?.clients.name) {
-        doc.text(project.clients.name, 120, 82);
-      }
-      if (project?.clients.address) {
-        const addressLines = project.clients.address.split('\n');
-        addressLines.forEach((line, index) => {
-          doc.text(line, 120, 94 + (index * 10));
-        });
-      }
-      
-      // Project and dates section
-      doc.setFont(undefined, 'bold');
-      doc.text('Project:', 20, 120);
-      doc.setFont(undefined, 'normal');
-      doc.text(project?.name || 'N/A', 20, 132);
-      
-      doc.setFont(undefined, 'bold');
-      doc.text('Issue Date:', 120, 120);
-      doc.setFont(undefined, 'normal');
-      doc.text(new Date(issueDate).toLocaleDateString(), 120, 132);
-      
-      doc.setFont(undefined, 'bold');
-      doc.text('Due Date:', 120, 144);
-      doc.setFont(undefined, 'normal');
-      doc.text(new Date(dueDate).toLocaleDateString(), 120, 156);
-      
-      // Add a line separator
-      doc.setDrawColor(200, 200, 200);
-      doc.line(20, 170, pageWidth - 20, 170);
-      
-      // Services/billing section
-      doc.setFillColor(248, 250, 252); // Light gray background
-      doc.rect(20, 180, pageWidth - 40, 30, 'F');
-      
-      doc.setFont(undefined, 'bold');
-      doc.text('Description', 25, 195);
-      doc.text('Rate', 120, 195);
-      doc.text('Amount', 160, 195);
-      
-      doc.setFont(undefined, 'normal');
-      doc.text('Professional Services', 25, 205);
-      doc.text(`${formatCurrency(parseFloat(hourlyRate))}/hr`, 120, 205);
-      doc.text(formatCurrency(totalAmount), 160, 205);
-      
-      // Total section with brand color background
-      doc.setFillColor(rgbColor.r, rgbColor.g, rgbColor.b);
-      doc.rect(20, 220, pageWidth - 40, 25, 'F');
-      
-      doc.setTextColor(255, 255, 255); // White text
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.text('Total Amount:', 25, 235);
-      doc.text(formatCurrency(totalAmount), pageWidth - 25, 235, { align: 'right' });
-      
-      // Status badge
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      
-      // Draft status (since it's being generated)
-      doc.setFillColor(156, 163, 175); // Gray
-      doc.setTextColor(255, 255, 255);
-      
-      const statusText = 'DRAFT';
-      const statusWidth = doc.getTextWidth(statusText) + 10;
-      doc.rect(pageWidth - statusWidth - 20, 255, statusWidth, 15, 'F');
-      doc.text(statusText, pageWidth - statusWidth/2 - 20, 265, { align: 'center' });
-      
-      // Footer
-      doc.setTextColor(100, 100, 100);
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'normal');
-      doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 20, { align: 'center' });
-      
-      doc.save(`invoice-${invoiceNumber}.pdf`);
+      pdf.save(`invoice-${invoiceNumber}.pdf`);
       
       toast({
         title: "Success",
         description: "Invoice PDF downloaded successfully",
       });
     } catch (error) {
+      console.error('Error generating PDF:', error);
       toast({
         title: "Error",
-        description: "Failed to generate PDF",
+        description: "Failed to generate PDF. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -444,47 +349,31 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
           {/* Invoice Preview */}
           <Card>
             <CardHeader>
-              <CardTitle>Invoice Preview</CardTitle>
+              <CardTitle>Professional Invoice Preview</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Invoice Header */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-semibold mb-2">From:</h3>
-                  <p className="text-sm">
-                    {profile.freelancer_name}<br />
-                    {profile.company_address}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">To:</h3>
-                  <p className="text-sm">
-                    {project.clients.name}<br />
-                    {project.clients.address}
-                  </p>
-                </div>
-              </div>
-
-              {/* Invoice Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p><strong>Project:</strong> {project.name}</p>
-                  <p><strong>Issue Date:</strong> {new Date(issueDate).toLocaleDateString()}</p>
-                  <p><strong>Due Date:</strong> {new Date(dueDate).toLocaleDateString()}</p>
-                </div>
-                <div className="md:text-right">
-                  <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(totalAmount)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {totalHours.toFixed(2)} hours × {getCurrencySymbol()}{hourlyRate}/hour
-                  </p>
-                </div>
+            <CardContent className="p-2">
+              <div className="w-full overflow-x-auto">
+                 <InvoiceTemplate
+                   ref={previewRef}
+                   invoice={{
+                     invoice_number: invoiceNumber,
+                     client_name: project.clients.name,
+                     client_address: project.clients.address,
+                     issue_date: issueDate,
+                     due_date: dueDate,
+                     status: 'draft',
+                     total_amount: totalAmount,
+                     hourly_rate: parseFloat(hourlyRate),
+                     projects: {
+                       name: project.name
+                     }
+                   }}
+                 />
               </div>
 
               {/* Time Entries Table */}
-              <div>
-                <h3 className="font-semibold mb-3">Time Entries:</h3>
+              <div className="mt-6">
+                <h3 className="font-semibold mb-3">Time Entries Breakdown:</h3>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -522,10 +411,10 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
               <Button
                 variant="outline"
                 onClick={downloadInvoicePDF}
-                disabled={generating}
+                disabled={generating || isGeneratingPDF}
               >
                 <Download className="h-4 w-4 mr-2" />
-                Download PDF
+                {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
               </Button>
               <Button
                 variant="outline"

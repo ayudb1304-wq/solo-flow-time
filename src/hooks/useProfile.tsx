@@ -10,6 +10,8 @@ interface Profile {
   subscription_status: string | null;
   subscription_cancel_at_period_end: boolean | null;
   subscription_period_end: string | null;
+  logo_url: string | null;
+  brand_color: string | null;
   created_at: string;
   updated_at: string;
 }

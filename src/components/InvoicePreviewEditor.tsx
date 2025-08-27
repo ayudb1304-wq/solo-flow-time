@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,13 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Edit, Send, X, Download, CalendarIcon } from "lucide-react";
+import { Edit, Send, X, Download, CalendarIcon, Eye } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from "@/hooks/useCurrency";
+import { InvoiceTemplate } from "./InvoiceTemplate";
+import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 interface Invoice {
@@ -39,6 +41,7 @@ interface InvoicePreviewEditorProps {
 
 export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: InvoicePreviewEditorProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [previewMode, setPreviewMode] = useState(true);
   const [editForm, setEditForm] = useState({
     client_name: "",
     client_address: "",
@@ -47,6 +50,8 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
     due_date: ""
   });
   const [dueDateOpen, setDueDateOpen] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const invoiceRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { formatCurrency, getCurrencySymbol } = useCurrency();
 
@@ -117,123 +122,64 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
     }
   };
 
-  const downloadInvoicePDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
+  const downloadInvoicePDF = async () => {
+    if (!invoiceRef.current) return;
     
-    // Add header background
-    doc.setFillColor(59, 130, 246); // Blue background
-    doc.rect(0, 0, pageWidth, 50, 'F');
+    setIsGeneratingPDF(true);
     
-    // Invoice title
-    doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(28);
-    doc.setFont(undefined, 'bold');
-    doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
-    
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'normal');
-    doc.text(`#${invoice.invoice_number}`, pageWidth / 2, 40, { align: 'center' });
-    
-    // Reset text color for body
-    doc.setTextColor(0, 0, 0);
-    
-    // From and To sections
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text('From:', 20, 70);
-    doc.setFont(undefined, 'normal');
-    doc.text('Your Company Name', 20, 82);
-    doc.text('Your Address', 20, 94);
-    
-    doc.setFont(undefined, 'bold');
-    doc.text('To:', 120, 70);
-    doc.setFont(undefined, 'normal');
-    doc.text(invoice.client_name, 120, 82);
-    if (invoice.client_address) {
-      doc.text(invoice.client_address, 120, 94);
+    try {
+      // Capture the invoice template as a canvas
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 2, // Higher resolution
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: invoiceRef.current.scrollWidth,
+        height: invoiceRef.current.scrollHeight,
+      });
+
+      // Calculate PDF dimensions
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Add image to PDF
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      // If the content is longer than one page, we might need multiple pages
+      if (imgHeight > pageHeight) {
+        let heightLeft = imgHeight - pageHeight;
+        let position = -pageHeight;
+        
+        while (heightLeft > 0) {
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+          position -= pageHeight;
+        }
+      }
+      
+      // Save the PDF
+      pdf.save(`invoice-${invoice.invoice_number}.pdf`);
+      
+      toast({
+        title: "Success",
+        description: "Invoice PDF downloaded successfully",
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
     }
-    
-    // Project and dates section
-    doc.setFont(undefined, 'bold');
-    doc.text('Project:', 20, 120);
-    doc.setFont(undefined, 'normal');
-    doc.text(invoice.projects.name, 20, 132);
-    
-    doc.setFont(undefined, 'bold');
-    doc.text('Issue Date:', 120, 120);
-    doc.setFont(undefined, 'normal');
-    doc.text(new Date(invoice.issue_date).toLocaleDateString(), 120, 132);
-    
-    doc.setFont(undefined, 'bold');
-    doc.text('Due Date:', 120, 144);
-    doc.setFont(undefined, 'normal');
-    doc.text(new Date(invoice.due_date).toLocaleDateString(), 120, 156);
-    
-    // Add a line separator
-    doc.setDrawColor(200, 200, 200);
-    doc.line(20, 170, pageWidth - 20, 170);
-    
-    // Services/billing section
-    doc.setFillColor(248, 250, 252); // Light gray background
-    doc.rect(20, 180, pageWidth - 40, 30, 'F');
-    
-    doc.setFont(undefined, 'bold');
-    doc.text('Description', 25, 195);
-    doc.text('Rate', 120, 195);
-    doc.text('Amount', 160, 195);
-    
-    doc.setFont(undefined, 'normal');
-    doc.text('Professional Services', 25, 205);
-    doc.text(`${getCurrencySymbol()}${invoice.hourly_rate.toFixed(2)}/hr`, 120, 205);
-    doc.text(formatCurrency(invoice.total_amount), 160, 205);
-    
-    // Total section with colored background
-    doc.setFillColor(34, 197, 94); // Green background
-    doc.rect(20, 220, pageWidth - 40, 25, 'F');
-    
-    doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.text('Total Amount:', 25, 235);
-    doc.text(formatCurrency(invoice.total_amount), pageWidth - 25, 235, { align: 'right' });
-    
-    // Status badge
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    
-    // Different colors for different statuses
-    if (invoice.status === 'paid') {
-      doc.setFillColor(34, 197, 94); // Green
-      doc.setTextColor(255, 255, 255);
-    } else if (invoice.status === 'sent') {
-      doc.setFillColor(251, 191, 36); // Yellow
-      doc.setTextColor(0, 0, 0);
-    } else {
-      doc.setFillColor(156, 163, 175); // Gray
-      doc.setTextColor(255, 255, 255);
-    }
-    
-    const statusText = invoice.status.toUpperCase();
-    const statusWidth = doc.getTextWidth(statusText) + 10;
-    doc.rect(pageWidth - statusWidth - 20, 255, statusWidth, 15, 'F');
-    doc.text(statusText, pageWidth - statusWidth/2 - 20, 265, { align: 'center' });
-    
-    // Footer
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 20, { align: 'center' });
-    
-    // Save the PDF
-    doc.save(`invoice-${invoice.invoice_number}.pdf`);
-    
-    toast({
-      title: "Success",
-      description: "Invoice PDF downloaded successfully",
-    });
   };
 
   return (
@@ -243,6 +189,14 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
           <div className="flex items-center justify-between">
             <DialogTitle>Invoice Preview & Editor</DialogTitle>
             <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPreviewMode(!previewMode)}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                {previewMode ? 'Edit Mode' : 'Preview Mode'}
+              </Button>
               {invoice.status === 'draft' && (
                 <>
                   <Button
@@ -251,7 +205,7 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
                     onClick={() => setIsEditing(!isEditing)}
                   >
                     <Edit className="h-4 w-4 mr-1" />
-                    {isEditing ? 'Cancel Edit' : 'Edit'}
+                    {isEditing ? 'Cancel Edit' : 'Form Edit'}
                   </Button>
                   <Button
                     size="sm"
@@ -266,9 +220,10 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
                 size="sm"
                 variant="outline"
                 onClick={downloadInvoicePDF}
+                disabled={isGeneratingPDF}
               >
                 <Download className="h-4 w-4 mr-1" />
-                Download PDF
+                {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
               </Button>
             </div>
           </div>
@@ -367,55 +322,34 @@ export const InvoicePreviewEditor = ({ invoice, isOpen, onClose, onUpdate }: Inv
           <Card className={isEditing ? "" : "lg:col-span-2"}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Invoice Preview</CardTitle>
+                <CardTitle>Professional Invoice Preview</CardTitle>
                 <Badge variant={invoice.status === 'draft' ? 'secondary' : invoice.status === 'sent' ? 'outline' : 'default'}>
                   {invoice.status.toUpperCase()}
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6 p-6 bg-white text-black rounded-lg border">
-                <div className="text-center">
-                  <h1 className="text-3xl font-bold">INVOICE</h1>
-                  <p className="text-lg">#{invoice.invoice_number}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="font-semibold mb-2">From:</h3>
-                    <p className="text-sm">Your Company Name</p>
-                    <p className="text-sm">Your Address</p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">To:</h3>
-                    <p className="text-sm font-medium">{isEditing ? editForm.client_name : invoice.client_name}</p>
-                    {(isEditing ? editForm.client_address : invoice.client_address) && (
-                      <p className="text-sm">{isEditing ? editForm.client_address : invoice.client_address}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="font-semibold mb-2">Project:</h3>
-                    <p className="text-sm">{invoice.projects.name}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm"><strong>Issue Date:</strong> {new Date(invoice.issue_date).toLocaleDateString()}</p>
-                    <p className="text-sm"><strong>Due Date:</strong> {new Date(isEditing ? editForm.due_date : invoice.due_date).toLocaleDateString()}</p>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span>Hourly Rate:</span>
-                    <span>{getCurrencySymbol()}{(isEditing ? editForm.hourly_rate : invoice.hourly_rate).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-lg font-bold border-t pt-2">
-                    <span>Total Amount:</span>
-                    <span>{formatCurrency(isEditing ? editForm.total_amount : invoice.total_amount)}</span>
-                  </div>
-                </div>
+            <CardContent className="p-2">
+              <div className="w-full overflow-x-auto">
+                <InvoiceTemplate
+                  ref={invoiceRef}
+                  invoice={{
+                    ...invoice,
+                    client_name: isEditing ? editForm.client_name : invoice.client_name,
+                    client_address: isEditing ? editForm.client_address : invoice.client_address,
+                    total_amount: isEditing ? editForm.total_amount : invoice.total_amount,
+                    hourly_rate: isEditing ? editForm.hourly_rate : invoice.hourly_rate,
+                    due_date: isEditing ? editForm.due_date : invoice.due_date,
+                  }}
+                  editable={!previewMode && !isEditing}
+                  onEdit={(field, value) => {
+                    setEditForm(prev => ({
+                      ...prev,
+                      [field]: field === 'total_amount' || field === 'hourly_rate' 
+                        ? parseFloat(value) || 0 
+                        : value
+                    }));
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
