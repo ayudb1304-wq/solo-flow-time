@@ -86,36 +86,28 @@ export const AnalyticsPage = () => {
     try {
       const startDate = getDateRangeFilter();
       
-      // Fetch time entries with related data and projects with clients
-      const { data: timeEntries, error: timeError } = await supabase
-        .from('time_entries')
+      // Fetch invoices with all related data - using invoices as single source of truth
+      const { data: invoices, error: invoicesError } = await supabase
+        .from('invoices')
         .select(`
           *,
           projects!inner(
             id,
-            name, 
-            hourly_rate,
-            client_id,
+            name,
             clients!inner(name)
+          ),
+          time_entries(
+            id,
+            duration_seconds
           )
         `)
-        .eq('user_id', user.id)
-        .gte('created_at', startDate.toISOString())
-        .not('end_time', 'is', null);
-
-      if (timeError) throw timeError;
-
-      // Fetch invoices for completed projects
-      const { data: invoices, error: invoicesError } = await supabase
-        .from('invoices')
-        .select('*')
         .eq('user_id', user.id)
         .gte('created_at', startDate.toISOString());
 
       if (invoicesError) throw invoicesError;
 
       // Process the data
-      const processedData = processAnalyticsData(timeEntries || [], invoices || []);
+      const processedData = processAnalyticsData(invoices || []);
       setAnalyticsData(processedData);
     } catch (error) {
       console.error('Error fetching analytics data:', error);
@@ -124,26 +116,32 @@ export const AnalyticsPage = () => {
     }
   };
 
-  const processAnalyticsData = (timeEntries: any[], invoices: any[]): AnalyticsData => {
+  const processAnalyticsData = (invoices: any[]): AnalyticsData => {
     // Calculate total revenue from invoices
     const totalRevenue = invoices.reduce((sum, invoice) => sum + Number(invoice.total_amount), 0);
 
-    // Calculate total billable hours
-    const totalHours = timeEntries.reduce((sum, entry) => {
-      const duration = entry.duration_seconds || 0;
-      return sum + (duration / 3600); // Convert seconds to hours
+    // Calculate total billable hours from time_entries linked to invoices
+    const totalHours = invoices.reduce((sum, invoice) => {
+      if (invoice.time_entries) {
+        const invoiceHours = invoice.time_entries.reduce((entrySum: number, entry: any) => {
+          const duration = entry.duration_seconds || 0;
+          return entrySum + (duration / 3600); // Convert seconds to hours
+        }, 0);
+        return sum + invoiceHours;
+      }
+      return sum;
     }, 0);
 
     // Calculate average project value
-    const uniqueProjects = [...new Set(timeEntries.map(entry => entry.project_id))];
+    const uniqueProjects = [...new Set(invoices.map(invoice => invoice.project_id))];
     const averageProjectValue = uniqueProjects.length > 0 ? totalRevenue / uniqueProjects.length : 0;
 
-    // Calculate revenue by client
+    // Calculate revenue by client from invoices
     const clientRevenue = new Map<string, number>();
-    timeEntries.forEach(entry => {
-      if (entry.projects?.clients?.name && entry.projects?.hourly_rate && entry.duration_seconds) {
-        const clientName = entry.projects.clients.name;
-        const revenue = (entry.duration_seconds / 3600) * Number(entry.projects.hourly_rate);
+    invoices.forEach(invoice => {
+      if (invoice.projects?.clients?.name) {
+        const clientName = invoice.projects.clients.name;
+        const revenue = Number(invoice.total_amount);
         clientRevenue.set(clientName, (clientRevenue.get(clientName) || 0) + revenue);
       }
     });
@@ -152,14 +150,12 @@ export const AnalyticsPage = () => {
     const topClient = Array.from(clientRevenue.entries())
       .sort(([,a], [,b]) => b - a)[0];
 
-    // Revenue by month (for chart)
+    // Revenue by month from invoices
     const monthlyRevenue = new Map<string, number>();
-    timeEntries.forEach(entry => {
-      if (entry.projects?.hourly_rate && entry.duration_seconds) {
-        const month = format(new Date(entry.created_at), 'MMM yyyy');
-        const revenue = (entry.duration_seconds / 3600) * Number(entry.projects.hourly_rate);
-        monthlyRevenue.set(month, (monthlyRevenue.get(month) || 0) + revenue);
-      }
+    invoices.forEach(invoice => {
+      const month = format(new Date(invoice.created_at), 'MMM yyyy');
+      const revenue = Number(invoice.total_amount);
+      monthlyRevenue.set(month, (monthlyRevenue.get(month) || 0) + revenue);
     });
 
     // Top 5 clients by revenue
@@ -168,13 +164,16 @@ export const AnalyticsPage = () => {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
-    // Hours by project
+    // Hours by project from time_entries linked to invoices
     const projectHours = new Map<string, number>();
-    timeEntries.forEach(entry => {
-      if (entry.projects?.name && entry.duration_seconds) {
-        const projectName = entry.projects.name;
-        const hours = entry.duration_seconds / 3600;
-        projectHours.set(projectName, (projectHours.get(projectName) || 0) + hours);
+    invoices.forEach(invoice => {
+      if (invoice.projects?.name && invoice.time_entries) {
+        const projectName = invoice.projects.name;
+        const projectHoursFromEntries = invoice.time_entries.reduce((entrySum: number, entry: any) => {
+          const duration = entry.duration_seconds || 0;
+          return entrySum + (duration / 3600); // Convert seconds to hours
+        }, 0);
+        projectHours.set(projectName, (projectHours.get(projectName) || 0) + projectHoursFromEntries);
       }
     });
 
