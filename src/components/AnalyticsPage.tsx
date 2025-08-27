@@ -51,7 +51,10 @@ export const AnalyticsPage = () => {
       <UpgradePrompt 
         title="Unlock Your Business Insights"
         message="Upgrade to Pro to access the Analytics Dashboard with comprehensive business metrics, revenue tracking, and actionable insights to grow your freelance business."
-        onUpgrade={() => window.open('https://razorpay.com/payment-link/plink_PLa9DGZKx7ufnB', '_blank')}
+        onUpgrade={() => {
+          // TODO: Implement proper payment system (Stripe/Razorpay)
+          alert('Payment system not configured yet. Please contact support for upgrade options.');
+        }}
       />
     );
   }
