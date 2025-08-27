@@ -102,11 +102,13 @@ export type Database = {
       }
       profiles: {
         Row: {
+          brand_color: string | null
           company_address: string | null
           created_at: string
           currency: string | null
           freelancer_name: string | null
           id: string
+          logo_url: string | null
           stripe_customer_id: string | null
           subscription_cancel_at_period_end: boolean | null
           subscription_period_end: string | null
@@ -115,11 +117,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          brand_color?: string | null
           company_address?: string | null
           created_at?: string
           currency?: string | null
           freelancer_name?: string | null
           id?: string
+          logo_url?: string | null
           stripe_customer_id?: string | null
           subscription_cancel_at_period_end?: boolean | null
           subscription_period_end?: string | null
@@ -128,11 +132,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          brand_color?: string | null
           company_address?: string | null
           created_at?: string
           currency?: string | null
           freelancer_name?: string | null
           id?: string
+          logo_url?: string | null
           stripe_customer_id?: string | null
           subscription_cancel_at_period_end?: boolean | null
           subscription_period_end?: string | null

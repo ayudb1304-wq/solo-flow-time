@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { User, Building, Settings, Crown, Zap, Star, DollarSign } from "lucide-react";
+import { User, Building, Settings, Crown, Zap, Star, DollarSign, Upload, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useCurrency, CURRENCY_OPTIONS } from "@/hooks/useCurrency";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface Profile {
   id: string;
@@ -22,6 +23,8 @@ interface Profile {
   subscription_period_end: string | null;
   currency: string | null;
   created_at: string;
+  logo_url: string | null;
+  brand_color: string | null;
 }
 
 export const SettingsPage = () => {
@@ -29,13 +32,17 @@ export const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [formData, setFormData] = useState({
     freelancer_name: "",
     company_address: "",
   });
+  const [brandColor, setBrandColor] = useState("#3b82f6");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { currency, updateCurrency } = useCurrency();
+  const { plan } = useSubscription();
 
   useEffect(() => {
     if (user) {
@@ -54,10 +61,11 @@ export const SettingsPage = () => {
       if (error) throw error;
       
       setProfile(data);
-    setFormData({
-      freelancer_name: data.freelancer_name || "",
-      company_address: data.company_address || "",
-    });
+      setFormData({
+        freelancer_name: data.freelancer_name || "",
+        company_address: data.company_address || "",
+      });
+      setBrandColor(data.brand_color || "#3b82f6");
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -178,6 +186,99 @@ export const SettingsPage = () => {
       });
     } finally {
       setUpgrading(false);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      toast({
+        title: "Error",
+        description: "Please upload a PNG or JPEG image",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error", 
+        description: "Image must be smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/logo.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('logos')
+        .getPublicUrl(fileName);
+
+      // Update profile with logo URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ logo_url: urlData.publicUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Success",
+        description: "Logo uploaded successfully",
+      });
+
+      fetchProfile();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload logo",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleBrandColorSave = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ brand_color: brandColor })
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Brand color updated successfully",
+      });
+
+      fetchProfile();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update brand color",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -416,6 +517,142 @@ export const SettingsPage = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Invoice Branding - Pro Users Only */}
+        {plan === 'pro' && (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Invoice Branding
+                <Badge variant="secondary" className="bg-blue-500 text-white">Pro</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Logo Upload Section */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Company Logo</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    {/* Logo Preview */}
+                    <div className="w-24 h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center bg-muted/50">
+                      {profile?.logo_url ? (
+                        <img
+                          src={profile.logo_url}
+                          alt="Company Logo"
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-1" />
+                          <span className="text-xs text-muted-foreground">No logo</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Upload Button */}
+                    <div className="flex-1">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingLogo}
+                        className="mb-2"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploadingLogo ? "Uploading..." : "Upload Logo"}
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        PNG or JPEG, max 5MB. Recommended: 400x200px
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Brand Color Section */}
+                <div className="space-y-3">
+                  <Label htmlFor="brand-color" className="text-sm font-medium">Brand Color</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="brand-color"
+                        type="color"
+                        value={brandColor}
+                        onChange={(e) => setBrandColor(e.target.value)}
+                        className="w-12 h-10 rounded border border-input cursor-pointer"
+                      />
+                      <Input
+                        value={brandColor}
+                        onChange={(e) => setBrandColor(e.target.value)}
+                        placeholder="#3b82f6"
+                        className="w-32"
+                      />
+                    </div>
+                    <Button onClick={handleBrandColorSave} disabled={saving} size="sm">
+                      {saving ? "Saving..." : "Save Color"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    This color will be used in your invoice headers and highlights
+                  </p>
+                </div>
+              </div>
+
+              {/* Preview Section */}
+              <div className="mt-6 p-4 border rounded-lg bg-muted/30">
+                <h4 className="font-medium mb-3">Invoice Preview</h4>
+                <div 
+                  className="p-4 bg-white border rounded shadow-sm"
+                  style={{ borderTopColor: brandColor, borderTopWidth: '4px' }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    {profile?.logo_url && (
+                      <img
+                        src={profile.logo_url}
+                        alt="Logo Preview"
+                        className="h-12 object-contain"
+                      />
+                    )}
+                    <div className="text-right">
+                      <h3 className="text-xl font-bold" style={{ color: brandColor }}>INVOICE</h3>
+                      <p className="text-sm text-muted-foreground">#2024-001</p>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    This is how your branding will appear on invoices
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Upgrade Prompt for Trial Users */}
+        {plan === 'trial' && (
+          <Card className="lg:col-span-2 border-2 border-dashed border-blue-200">
+            <CardContent className="p-6 text-center">
+              <Crown className="h-12 w-12 mx-auto text-blue-500 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Unlock Custom Invoice Branding</h3>
+              <p className="text-muted-foreground mb-4">
+                Upgrade to Pro to add your company logo and brand colors to all invoices, making them look professional and branded.
+              </p>
+              <Button
+                onClick={() => handleUpgrade('pro')}
+                disabled={upgrading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                {upgrading ? 'Processing...' : 'Upgrade to Pro'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Account Information */}
         <Card className="lg:col-span-2">

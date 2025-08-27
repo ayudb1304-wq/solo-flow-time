@@ -31,6 +31,8 @@ interface TimeEntry {
 interface Profile {
   freelancer_name: string;
   company_address: string;
+  logo_url: string | null;
+  brand_color: string | null;
 }
 
 interface InvoiceGeneratorProps {
@@ -83,7 +85,7 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
       // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('freelancer_name, company_address')
+        .select('freelancer_name, company_address, logo_url, brand_color')
         .eq('user_id', user?.id)
         .single();
 
@@ -152,9 +154,37 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       
-      // Add header background
-      doc.setFillColor(59, 130, 246); // Blue background
+      // Get brand color or use default
+      const brandColor = profile?.brand_color || '#3b82f6';
+      const rgbColor = hexToRgb(brandColor);
+      
+      // Add header background with brand color
+      doc.setFillColor(rgbColor.r, rgbColor.g, rgbColor.b);
       doc.rect(0, 0, pageWidth, 50, 'F');
+      
+      // Add logo if available
+      if (profile?.logo_url) {
+        try {
+          const logoImg = new Image();
+          logoImg.crossOrigin = 'anonymous';
+          await new Promise((resolve, reject) => {
+            logoImg.onload = resolve;
+            logoImg.onerror = reject;
+            logoImg.src = profile.logo_url!;
+          });
+          
+          // Calculate logo dimensions (max 40x20)
+          const maxWidth = 40;
+          const maxHeight = 20;
+          const ratio = Math.min(maxWidth / logoImg.width, maxHeight / logoImg.height);
+          const logoWidth = logoImg.width * ratio;
+          const logoHeight = logoImg.height * ratio;
+          
+          doc.addImage(logoImg, 'PNG', 20, 15, logoWidth, logoHeight);
+        } catch (error) {
+          console.warn('Failed to load logo for PDF:', error);
+        }
+      }
       
       // Invoice title
       doc.setTextColor(255, 255, 255); // White text
@@ -235,8 +265,8 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
       doc.text(`${formatCurrency(parseFloat(hourlyRate))}/hr`, 120, 205);
       doc.text(formatCurrency(totalAmount), 160, 205);
       
-      // Total section with colored background
-      doc.setFillColor(34, 197, 94); // Green background
+      // Total section with brand color background
+      doc.setFillColor(rgbColor.r, rgbColor.g, rgbColor.b);
       doc.rect(20, 220, pageWidth - 40, 25, 'F');
       
       doc.setTextColor(255, 255, 255); // White text
@@ -278,6 +308,16 @@ export const InvoiceGenerator = ({ projectId, onBack, onClose }: InvoiceGenerato
         variant: "destructive",
       });
     }
+  };
+
+  // Helper function to convert hex color to RGB
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 59, g: 130, b: 246 }; // Default blue
   };
 
   const handleGenerateInvoice = async (status: 'draft' | 'sent') => {
