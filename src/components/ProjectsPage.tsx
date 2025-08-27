@@ -6,7 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, Eye, Search, Briefcase, FolderOpen, Calendar, Building, Crown, Sparkles, Target, TrendingUp } from "lucide-react";
+import { Trash2, Plus, Eye, Search, Briefcase, FolderOpen, Calendar, CalendarIcon, Building, Crown, Sparkles, Target, TrendingUp } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -24,6 +28,7 @@ interface Project {
   client_id: string;
   status: string;
   created_at: string;
+  due_date: string | null;
   clients: {
     name: string;
   };
@@ -39,6 +44,7 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [selectedDueDate, setSelectedDueDate] = useState<Date | undefined>();
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -117,6 +123,7 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
           name: newProjectName.trim(),
           client_id: selectedClientId,
           user_id: user?.id,
+          due_date: selectedDueDate?.toISOString().split('T')[0] || null,
         });
 
       if (error) throw error;
@@ -128,6 +135,7 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
 
       setNewProjectName("");
       setSelectedClientId("");
+      setSelectedDueDate(undefined);
       setIsDialogOpen(false);
       fetchProjects();
     } catch (error) {
@@ -250,7 +258,34 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button 
+              <div className="grid gap-3">
+                <Label className="text-sm font-medium">Due Date (Optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "h-11 justify-start text-left font-normal",
+                        !selectedDueDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-3 h-4 w-4" />
+                      {selectedDueDate ? format(selectedDueDate, "PPP") : <span>Pick a due date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDueDate}
+                      onSelect={setSelectedDueDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <Button
                 onClick={handleAddProject} 
                 disabled={!newProjectName.trim() || !selectedClientId}
                 className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 h-11"
@@ -403,6 +438,12 @@ export const ProjectsPage = ({ onProjectSelect }: ProjectsPageProps) => {
                     <Calendar className="h-4 w-4 mr-3 text-primary" />
                     <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
                   </div>
+                  {project.due_date && (
+                    <div className="flex items-center text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
+                      <Target className="h-4 w-4 mr-3 text-accent" />
+                      <span>Due {new Date(project.due_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
                 </div>
                 <Button 
                   variant="outline" 
