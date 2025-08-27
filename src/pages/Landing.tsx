@@ -186,16 +186,10 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           
           {/* Social proof */}
           <div className="mt-16 flex flex-col items-center gap-4">
-            <p className="text-sm text-muted-foreground font-medium">Trusted by premium freelancers worldwide</p>
-            <div className="flex items-center gap-8 opacity-60">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-primary text-primary" />
-                ))}
-                <span className="ml-2 text-sm font-medium text-foreground">4.9/5</span>
-              </div>
-              <div className="h-4 w-px bg-border" />
-              <span className="text-sm font-medium text-foreground">10,000+ Active Users</span>
+            <p className="text-sm text-muted-foreground font-medium">Built for freelancers who value simplicity</p>
+            <div className="flex items-center gap-2 border border-border/50 rounded-full px-4 py-2 opacity-80 bg-background/50 backdrop-blur-sm">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Clutter-Free by Design</span>
             </div>
           </div>
         </div>
