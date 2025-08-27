@@ -7,7 +7,8 @@ import {
   Settings,
   X,
   Sparkles,
-  Crown
+  Crown,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
@@ -19,6 +20,7 @@ const navigation = [
   { name: "Clients", icon: Users, key: "clients", gradient: "from-purple-500 to-pink-500" },
   { name: "Projects", icon: Briefcase, key: "projects", gradient: "from-green-500 to-emerald-500" },
   { name: "Invoices", icon: FileText, key: "invoices", gradient: "from-orange-500 to-red-500" },
+  { name: "Analytics", icon: BarChart3, key: "analytics", gradient: "from-emerald-500 to-teal-500" },
   { name: "Settings", icon: Settings, key: "settings", gradient: "from-gray-500 to-slate-500" },
 ];
 

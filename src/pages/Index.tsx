@@ -8,6 +8,7 @@ import { ProjectDetailPage } from "@/components/ProjectDetailPage";
 import { InvoicesPage } from "@/components/InvoicesPage";
 import { InvoiceGenerator } from "@/components/InvoiceGenerator";
 import { SettingsPage } from "@/components/SettingsPage";
+import { AnalyticsPage } from "@/components/AnalyticsPage";
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -61,6 +62,8 @@ const Index = () => {
         );
       case "invoices":
         return <InvoicesPage />;
+      case "analytics":
+        return <AnalyticsPage />;
       case "settings":
         return <SettingsPage />;
       case "profile":
