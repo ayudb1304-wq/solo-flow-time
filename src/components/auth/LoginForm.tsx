@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "./AuthProvider";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 import { Loader2, ArrowRight, Mail, Lock } from "lucide-react";
 
 interface LoginFormProps {
@@ -15,6 +15,7 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,18 +23,26 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
 
     try {
       await login(email, password);
-      toast.success("Welcome back to SoloFlow!");
+      toast({
+        title: "Welcome back!",
+        description: "Successfully signed in to SoloFlow.",
+      });
     } catch (error: any) {
       // Check if it's an email verification error
       if (error.message?.includes("Email not confirmed") || 
           error.message?.includes("email confirmation") ||
           error.message?.includes("not verified")) {
-        toast.error(
-          "Please verify your email address first. Check your inbox for a verification email and click the link to activate your account.",
-          { duration: 8000 }
-        );
+        toast({
+          variant: "destructive",
+          title: "Email verification required",
+          description: "Please verify your email address first. Check your inbox for a verification email and click the link to activate your account.",
+        });
       } else {
-        toast.error(error.message || "Invalid credentials. Please try again.");
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: error.message || "Invalid credentials. Please try again.",
+        });
       }
     } finally {
       setLoading(false);

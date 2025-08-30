@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "./AuthProvider";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 import { Loader2, ArrowRight, Mail, Lock, User } from "lucide-react";
 
 interface RegisterFormProps {
@@ -16,6 +16,7 @@ export const RegisterForm = ({ onToggleMode }: RegisterFormProps) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +24,20 @@ export const RegisterForm = ({ onToggleMode }: RegisterFormProps) => {
 
     try {
       await register(email, password, fullName);
-      toast.success("Account created successfully! Please check your email to verify your account, then sign in.");
+      toast({
+        title: "Account created successfully!",
+        description: "Please check your email to verify your account, then sign in.",
+      });
       // Switch to login form after successful signup
       setTimeout(() => {
         onToggleMode();
       }, 2000);
     } catch (error: any) {
-      toast.error(error.message || "Failed to create account. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Registration failed",
+        description: error.message || "Failed to create account. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
