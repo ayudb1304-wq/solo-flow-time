@@ -49,6 +49,34 @@ serve(async (req) => {
         }
 
         console.log(`Updated user ${userId} to ${plan} plan`);
+        
+        // Send welcome email to new pro subscribers
+        if (plan === 'pro') {
+          try {
+            // Get user details for welcome email
+            const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserById(userId);
+            
+            if (!userError && userData.user) {
+              // Send welcome email
+              const { error: emailError } = await supabaseClient.functions.invoke('send-welcome-email', {
+                body: {
+                  userId: userId,
+                  userEmail: userData.user.email,
+                  userName: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0],
+                  plan: plan
+                }
+              });
+              
+              if (emailError) {
+                console.error('Error sending welcome email:', emailError);
+              } else {
+                console.log(`Welcome email sent to ${userData.user.email}`);
+              }
+            }
+          } catch (emailError) {
+            console.error('Error processing welcome email:', emailError);
+          }
+        }
       } else {
         console.log('Missing userId or plan in webhook data');
       }
