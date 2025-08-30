@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   loading: boolean;
   isSessionValid: boolean;
 }
@@ -161,6 +162,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
   };
 
+  const resetPassword = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/auth?reset=true`;
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+    
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Password reset failed",
+        description: error.message,
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Password reset email sent!",
+      description: "Please check your email for password reset instructions.",
+    });
+  };
+
   const logout = async () => {
     try {
       // First clear local state immediately to prevent UI issues
@@ -198,7 +221,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, login, register, logout, loading, isSessionValid }}>
+    <AuthContext.Provider value={{ user, session, login, register, logout, resetPassword, loading, isSessionValid }}>
       {children}
     </AuthContext.Provider>
   );
