@@ -24,7 +24,17 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
       await login(email, password);
       toast.success("Welcome back to SoloFlow!");
     } catch (error: any) {
-      toast.error(error.message || "Invalid credentials. Please try again.");
+      // Check if it's an email verification error
+      if (error.message?.includes("Email not confirmed") || 
+          error.message?.includes("email confirmation") ||
+          error.message?.includes("not verified")) {
+        toast.error(
+          "Please verify your email address first. Check your inbox for a verification email and click the link to activate your account.",
+          { duration: 8000 }
+        );
+      } else {
+        toast.error(error.message || "Invalid credentials. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

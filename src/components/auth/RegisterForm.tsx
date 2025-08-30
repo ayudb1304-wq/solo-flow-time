@@ -23,7 +23,11 @@ export const RegisterForm = ({ onToggleMode }: RegisterFormProps) => {
 
     try {
       await register(email, password, fullName);
-      toast.success("Welcome to SoloFlow! Your premium account has been created.");
+      toast.success("Account created successfully! Please check your email to verify your account, then sign in.");
+      // Switch to login form after successful signup
+      setTimeout(() => {
+        onToggleMode();
+      }, 2000);
     } catch (error: any) {
       toast.error(error.message || "Failed to create account. Please try again.");
     } finally {
