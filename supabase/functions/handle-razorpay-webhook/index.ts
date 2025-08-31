@@ -23,22 +23,69 @@ serve(async (req) => {
     console.log('Webhook received:', webhookData);
 
     // Handle different webhook events
-    if (webhookData.event === 'subscription.activated' || webhookData.event === 'payment.captured') {
-      const { payload } = webhookData;
-      const subscription = payload.subscription?.entity || payload.payment?.entity;
-      const userId = subscription.notes?.user_id;
-      const plan = subscription.notes?.plan;
+    const event: string = webhookData.event;
+    const activationEvents = new Set([
+      'subscription.activated',
+      'subscription.charged', // fires on successful charge for subscriptions
+      'invoice.paid',         // safety: invoice payment completed
+      'payment.captured',     // initial payment captured
+    ]);
 
-      console.log('Processing webhook event:', webhookData.event);
-      console.log('User ID:', userId);
-      console.log('Plan:', plan);
+    // Helper: fetch subscription notes from Razorpay when not present in payload
+    const getNotesFromRazorpay = async (subscriptionId?: string): Promise<Record<string, any> | null> => {
+      try {
+        if (!subscriptionId) return null;
+        const keyId = Deno.env.get('RAZORPAY_KEY_ID');
+        const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+        if (!keyId || !keySecret) {
+          console.warn('Razorpay keys not configured; cannot backfill notes');
+          return null;
+        }
+        const auth = btoa(`${keyId}:${keySecret}`);
+        const res = await fetch(`https://api.razorpay.com/v1/subscriptions/${subscriptionId}` , {
+          headers: {
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json',
+          }
+        });
+        if (!res.ok) {
+          console.warn('Failed to fetch subscription from Razorpay', await res.text());
+          return null;
+        }
+        const sub = await res.json();
+        return sub?.notes ?? null;
+      } catch (e) {
+        console.error('Error fetching subscription from Razorpay:', e);
+        return null;
+      }
+    };
+
+    if (activationEvents.has(event)) {
+      const { payload } = webhookData;
+      const subscriptionEntity = payload.subscription?.entity;
+      const paymentEntity = payload.payment?.entity;
+
+      let userId = subscriptionEntity?.notes?.user_id || paymentEntity?.notes?.user_id;
+      let plan = subscriptionEntity?.notes?.plan || paymentEntity?.notes?.plan;
+
+      console.log('Processing activation-like event:', event, { userId, plan });
+
+      // Backfill from Razorpay if notes are missing
+      if (!userId || !plan) {
+        const subscriptionId = subscriptionEntity?.id || paymentEntity?.subscription_id;
+        const fetchedNotes = await getNotesFromRazorpay(subscriptionId);
+        userId = userId || fetchedNotes?.user_id;
+        plan = plan || fetchedNotes?.plan;
+        console.log('Backfilled notes from Razorpay:', { userId, plan });
+      }
 
       if (userId && plan) {
-        // Update user subscription status
         const { error } = await supabaseClient
           .from('profiles')
           .update({
             subscription_status: plan,
+            subscription_cancel_at_period_end: false,
+            subscription_period_end: null,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', userId);
@@ -49,24 +96,20 @@ serve(async (req) => {
         }
 
         console.log(`Updated user ${userId} to ${plan} plan`);
-        
+
         // Send welcome email to new pro subscribers
         if (plan === 'pro') {
           try {
-            // Get user details for welcome email
             const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserById(userId);
-            
             if (!userError && userData.user) {
-              // Send welcome email
               const { error: emailError } = await supabaseClient.functions.invoke('send-welcome-email', {
                 body: {
                   userId: userId,
                   userEmail: userData.user.email,
                   userName: userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0],
-                  plan: plan
-                }
+                  plan: plan,
+                },
               });
-              
               if (emailError) {
                 console.error('Error sending welcome email:', emailError);
               } else {
@@ -78,17 +121,16 @@ serve(async (req) => {
           }
         }
       } else {
-        console.log('Missing userId or plan in webhook data');
+        console.log('Missing userId or plan in webhook data and could not backfill');
       }
     }
 
-    if (webhookData.event === 'subscription.cancelled' || webhookData.event === 'subscription.expired') {
+    if (event === 'subscription.cancelled' || event === 'subscription.expired') {
       const { payload } = webhookData;
       const subscription = payload.subscription.entity;
       const userId = subscription.notes?.user_id;
 
       if (userId) {
-        // Downgrade to trial
         const { error } = await supabaseClient
           .from('profiles')
           .update({
