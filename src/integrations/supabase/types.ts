@@ -281,6 +281,7 @@ export type Database = {
           end_time: string | null
           id: string
           invoice_id: string | null
+          needs_review: boolean | null
           project_id: string
           start_time: string
           task_description: string
@@ -294,6 +295,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           invoice_id?: string | null
+          needs_review?: boolean | null
           project_id: string
           start_time: string
           task_description: string
@@ -307,6 +309,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           invoice_id?: string | null
+          needs_review?: boolean | null
           project_id?: string
           start_time?: string
           task_description?: string

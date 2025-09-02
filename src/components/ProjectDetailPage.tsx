@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Play, Square, Trash2, Plus, Clock, CheckCircle2, FileText, ChevronDown, ChevronRight, Receipt, DollarSign, Download, Eye } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, Plus, Clock, CheckCircle2, FileText, ChevronDown, ChevronRight, Receipt, DollarSign, Download, Eye, AlertTriangle, Edit, Pause } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,7 +16,9 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { InvoicePreviewEditor } from "@/components/InvoicePreviewEditor";
 import { ManualTimeEntryModal } from "@/components/ManualTimeEntryModal";
 import { WelcomeBackModal } from "@/components/WelcomeBackModal";
+import { TimeEntryReviewModal } from "@/components/TimeEntryReviewModal";
 import { useIdleDetection } from "@/hooks/useIdleDetection";
+import { useSilentIdleFlagging } from "@/hooks/useSilentIdleFlagging";
 import jsPDF from 'jspdf';
 
 interface Project {
@@ -41,6 +43,7 @@ interface TimeEntry {
   end_time: string | null;
   duration_seconds: number | null;
   invoice_id: string | null;
+  needs_review?: boolean;
 }
 
 interface Invoice {
@@ -80,6 +83,8 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
   const [isWelcomeBackOpen, setIsWelcomeBackOpen] = useState(false);
   const [idleDuration, setIdleDuration] = useState(0);
   const [activeTaskDescription, setActiveTaskDescription] = useState<string>("");
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedReviewEntry, setSelectedReviewEntry] = useState<TimeEntry | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
@@ -87,6 +92,9 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
 
   // Get current active task description
   const currentActiveTask = tasks.find(task => task.id === activeTimer);
+  
+  // Get active time entry ID for silent flagging
+  const activeTimeEntryId = timeEntries.find(entry => !entry.end_time)?.id || null;
   
   // Idle detection setup
   const { isIdle, idleStartTime, notificationPermission, requestNotificationPermission } = useIdleDetection({
@@ -102,6 +110,13 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
       setActiveTaskDescription(currentActiveTask?.description || "Unknown Task");
       setIsWelcomeBackOpen(true);
     }
+  });
+
+  // Initialize silent idle flagging
+  useSilentIdleFlagging({
+    activeTimeEntryId,
+    isTimerActive: !!activeTimer,
+    idleThreshold: 15 * 60 * 1000 // 15 minutes
   });
 
   const toggleTaskExpansion = (taskId: string) => {
@@ -840,11 +855,24 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                         <TableCell>{entry.task_description}</TableCell>
                         <TableCell>{new Date(entry.start_time).toLocaleDateString()}</TableCell>
                         <TableCell>
-                          {entry.end_time ? (
-                            formatDuration(entry.duration_seconds)
-                          ) : (
-                            <span className="text-primary">Running...</span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {entry.end_time ? (
+                              formatDuration(entry.duration_seconds)
+                            ) : (
+                              <span className="text-primary">Running...</span>
+                            )}
+                            {entry.needs_review && (
+                              <div title="Inactivity was detected during this session. Click to review.">
+                                <AlertTriangle 
+                                  className="h-4 w-4 text-warning cursor-pointer hover:text-warning/80 transition-colors" 
+                                  onClick={() => {
+                                    setSelectedReviewEntry(entry);
+                                    setReviewModalOpen(true);
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           {entry.invoice_id ? (
@@ -886,13 +914,26 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>{new Date(entry.start_time).toLocaleDateString()}</span>
-                        <span>
-                          {entry.end_time ? (
-                            formatDuration(entry.duration_seconds)
-                          ) : (
-                            <span className="text-primary font-medium">Running...</span>
+                        <div className="flex items-center gap-2">
+                          <span>
+                            {entry.end_time ? (
+                              formatDuration(entry.duration_seconds)
+                            ) : (
+                              <span className="text-primary font-medium">Running...</span>
+                            )}
+                          </span>
+                          {entry.needs_review && (
+                            <div title="Inactivity was detected during this session. Click to review.">
+                              <AlertTriangle 
+                                className="h-3 w-3 text-warning cursor-pointer hover:text-warning/80 transition-colors" 
+                                onClick={() => {
+                                  setSelectedReviewEntry(entry);
+                                  setReviewModalOpen(true);
+                                }}
+                              />
+                            </div>
                           )}
-                        </span>
+                        </div>
                       </div>
                     </div>
                   </Card>
@@ -1084,6 +1125,16 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
         onKeepTime={handleKeepIdleTime}
         onDiscardAndStop={handleDiscardAndStop}
         onDiscardAndContinue={handleDiscardAndContinue}
+      />
+
+      <TimeEntryReviewModal
+        entry={selectedReviewEntry}
+        isOpen={reviewModalOpen}
+        onClose={() => {
+          setReviewModalOpen(false);
+          setSelectedReviewEntry(null);
+        }}
+        onEntryUpdated={fetchTimeEntries}
       />
     </div>
   );
