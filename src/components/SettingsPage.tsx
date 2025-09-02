@@ -401,38 +401,72 @@ export const SettingsPage = () => {
 
             <div className="grid gap-2">
               <Label htmlFor="notifications">Idle Time Notifications</Label>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="text-sm font-medium">Push Notifications</div>
-                  <div className="text-xs text-muted-foreground">
-                    Get notified when your timer is idle for extended periods
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="text-sm font-medium">Push Notifications</div>
+                    <div className="text-xs text-muted-foreground">
+                      Get notified when your timer is idle for extended periods
+                    </div>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      if ('Notification' in window) {
+                        const permission = await Notification.requestPermission();
+                        if (permission === 'granted') {
+                          toast({
+                            title: "Success",
+                            description: "Push notifications enabled for idle timer alerts",
+                          });
+                        } else if (permission === 'denied') {
+                          toast({
+                            title: "Permission Denied",
+                            description: "Please enable notifications manually in your browser settings",
+                            variant: "destructive",
+                          });
+                        }
+                      } else {
+                        toast({
+                          title: "Not Supported",
+                          description: "Push notifications are not supported in this browser",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                    disabled={typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted'}
+                  >
+                    {typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' ? 'Enabled' : 'Enable'}
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    if ('Notification' in window) {
-                      const permission = await Notification.requestPermission();
-                      toast({
-                        title: permission === 'granted' ? "Success" : "Permission Denied",
-                        description: permission === 'granted' 
-                          ? "Push notifications enabled for idle timer alerts"
-                          : "Push notification permission was denied",
-                        variant: permission === 'granted' ? "default" : "destructive",
-                      });
-                    } else {
-                      toast({
-                        title: "Not Supported",
-                        description: "Push notifications are not supported in this browser",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                  disabled={typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted'}
-                >
-                  {typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' ? 'Enabled' : 'Enable'}
-                </Button>
+                
+                {/* Show help text if permission was denied */}
+                {typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'denied' && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="text-sm text-amber-800">
+                      <div className="font-medium mb-1">Notifications are blocked</div>
+                      <div className="text-xs space-y-1">
+                        <p>To enable notifications manually:</p>
+                        <ul className="list-disc list-inside space-y-0.5 ml-2">
+                          <li><strong>Chrome:</strong> Click the lock icon → Site settings → Notifications → Allow</li>
+                          <li><strong>Firefox:</strong> Click the shield icon → Permissions → Notifications → Allow</li>
+                          <li><strong>Safari:</strong> Safari menu → Settings → Websites → Notifications → Allow</li>
+                        </ul>
+                        <p className="mt-2">Then refresh this page to retry.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-xs text-muted-foreground">
+                  <div className="font-medium mb-1">How it works:</div>
+                  <ul className="space-y-0.5 text-xs">
+                    <li>• Browser tab title changes after 15 minutes of inactivity</li>
+                    <li>• Push notification appears after 17 minutes (if enabled)</li>
+                    <li>• Welcome back modal helps you manage idle time when you return</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </CardContent>
