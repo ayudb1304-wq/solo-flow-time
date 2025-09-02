@@ -398,6 +398,43 @@ export const SettingsPage = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="notifications">Idle Time Notifications</Label>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="text-sm font-medium">Push Notifications</div>
+                  <div className="text-xs text-muted-foreground">
+                    Get notified when your timer is idle for extended periods
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if ('Notification' in window) {
+                      const permission = await Notification.requestPermission();
+                      toast({
+                        title: permission === 'granted' ? "Success" : "Permission Denied",
+                        description: permission === 'granted' 
+                          ? "Push notifications enabled for idle timer alerts"
+                          : "Push notification permission was denied",
+                        variant: permission === 'granted' ? "default" : "destructive",
+                      });
+                    } else {
+                      toast({
+                        title: "Not Supported",
+                        description: "Push notifications are not supported in this browser",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  disabled={typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted'}
+                >
+                  {typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' ? 'Enabled' : 'Enable'}
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

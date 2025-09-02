@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
 import { InvoicePreviewEditor } from "@/components/InvoicePreviewEditor";
 import { ManualTimeEntryModal } from "@/components/ManualTimeEntryModal";
+import { WelcomeBackModal } from "@/components/WelcomeBackModal";
+import { useIdleDetection } from "@/hooks/useIdleDetection";
 import jsPDF from 'jspdf';
 
 interface Project {
@@ -75,10 +77,32 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
+  const [isWelcomeBackOpen, setIsWelcomeBackOpen] = useState(false);
+  const [idleDuration, setIdleDuration] = useState(0);
+  const [activeTaskDescription, setActiveTaskDescription] = useState<string>("");
   const { user } = useAuth();
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
   const { checkLimit } = useSubscription();
+
+  // Get current active task description
+  const currentActiveTask = tasks.find(task => task.id === activeTimer);
+  
+  // Idle detection setup
+  const { isIdle, idleStartTime, notificationPermission, requestNotificationPermission } = useIdleDetection({
+    idleThreshold: 15 * 60 * 1000, // 15 minutes
+    notificationDelay: 2 * 60 * 1000, // 2 minutes
+    isTimerActive: !!activeTimer,
+    onIdle: (idleStart) => {
+      // Store the idle start time for later calculation
+      console.log('Idle detected at:', idleStart);
+    },
+    onReturn: (duration) => {
+      setIdleDuration(duration);
+      setActiveTaskDescription(currentActiveTask?.description || "Unknown Task");
+      setIsWelcomeBackOpen(true);
+    }
+  });
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks);
@@ -287,6 +311,7 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
       if (error) throw error;
 
       setActiveTimer(taskId);
+      setActiveTaskDescription(taskDescription);
       toast({
         title: "Timer started",
         description: `Started tracking time for: ${taskDescription}`,
@@ -324,6 +349,7 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
       if (error) throw error;
 
       setActiveTimer(null);
+      setActiveTaskDescription("");
       toast({
         title: "Timer stopped",
         description: `Logged ${Math.floor(durationSeconds / 60)} minutes`,
@@ -539,6 +565,104 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
       title: "Success",
       description: "Invoice PDF downloaded successfully",
     });
+  };
+
+  // Welcome back modal handlers
+  const handleKeepIdleTime = async () => {
+    // Do nothing - the time entry continues as is
+    toast({
+      title: "Time kept",
+      description: "Idle time has been included in your time entry",
+    });
+  };
+
+  const handleDiscardAndStop = async () => {
+    if (!activeTimer) return;
+    
+    try {
+      const activeEntry = timeEntries.find(entry => !entry.end_time);
+      if (!activeEntry) return;
+
+      // Calculate time up to idle start
+      const idleStartTimestamp = Date.now() - idleDuration;
+      const startTime = new Date(activeEntry.start_time);
+      const durationSeconds = Math.floor((idleStartTimestamp - startTime.getTime()) / 1000);
+
+      const { error } = await supabase
+        .from('time_entries')
+        .update({
+          end_time: new Date(idleStartTimestamp).toISOString(),
+          duration_seconds: durationSeconds,
+        })
+        .eq('id', activeEntry.id);
+
+      if (error) throw error;
+
+      setActiveTimer(null);
+      setActiveTaskDescription("");
+      toast({
+        title: "Timer stopped",
+        description: `Logged ${Math.floor(durationSeconds / 60)} minutes (idle time discarded)`,
+      });
+
+      fetchTimeEntries();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to stop timer",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDiscardAndContinue = async () => {
+    if (!activeTimer) return;
+    
+    try {
+      const activeEntry = timeEntries.find(entry => !entry.end_time);
+      if (!activeEntry) return;
+
+      // End the current entry at idle start time
+      const idleStartTimestamp = Date.now() - idleDuration;
+      const startTime = new Date(activeEntry.start_time);
+      const durationSeconds = Math.floor((idleStartTimestamp - startTime.getTime()) / 1000);
+
+      const { error: updateError } = await supabase
+        .from('time_entries')
+        .update({
+          end_time: new Date(idleStartTimestamp).toISOString(),
+          duration_seconds: durationSeconds,
+        })
+        .eq('id', activeEntry.id);
+
+      if (updateError) throw updateError;
+
+      // Start a new entry immediately
+      const { error: insertError } = await supabase
+        .from('time_entries')
+        .insert({
+          task_id: activeTimer,
+          project_id: projectId,
+          user_id: user?.id,
+          task_description: activeEntry.task_description,
+          start_time: new Date().toISOString(),
+        });
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: "Timer restarted",
+        description: `Discarded idle time, continuing with fresh timer`,
+      });
+
+      fetchTimeEntries();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to restart timer",
+        variant: "destructive",
+      });
+    }
   };
 
   const unInvoicedEntries = timeEntries.filter(entry => !entry.invoice_id && entry.end_time);
@@ -950,6 +1074,16 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
         projectId={projectId}
         tasks={tasks}
         onEntryAdded={fetchTimeEntries}
+      />
+
+      <WelcomeBackModal
+        open={isWelcomeBackOpen}
+        onClose={() => setIsWelcomeBackOpen(false)}
+        idleDuration={idleDuration}
+        taskDescription={activeTaskDescription}
+        onKeepTime={handleKeepIdleTime}
+        onDiscardAndStop={handleDiscardAndStop}
+        onDiscardAndContinue={handleDiscardAndContinue}
       />
     </div>
   );
