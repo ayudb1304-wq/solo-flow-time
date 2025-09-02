@@ -14,6 +14,7 @@ import { useCurrency } from "@/hooks/useCurrency";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
 import { InvoicePreviewEditor } from "@/components/InvoicePreviewEditor";
+import { ManualTimeEntryModal } from "@/components/ManualTimeEntryModal";
 import jsPDF from 'jspdf';
 
 interface Project {
@@ -73,6 +74,7 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const { formatCurrency } = useCurrency();
@@ -675,12 +677,22 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
             <Clock className="h-5 w-5" />
             Time Entries
           </CardTitle>
-          {unInvoicedEntries.length > 0 && (
-            <Button onClick={() => onGenerateInvoice(projectId)} className="flex items-center gap-2 w-full sm:w-auto">
-              <FileText className="h-4 w-4" />
-              Generate Invoice
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              onClick={() => setIsManualEntryOpen(true)} 
+              variant="outline"
+              className="flex items-center gap-2 w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4" />
+              Add Time
             </Button>
-          )}
+            {unInvoicedEntries.length > 0 && (
+              <Button onClick={() => onGenerateInvoice(projectId)} className="flex items-center gap-2 w-full sm:w-auto">
+                <FileText className="h-4 w-4" />
+                Generate Invoice
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-0 md:p-6">
           {timeEntries.length === 0 ? (
@@ -931,6 +943,14 @@ export const ProjectDetailPage = ({ projectId, onBack, onGenerateInvoice }: Proj
           onUpdate={fetchInvoices}
         />
       )}
+
+      <ManualTimeEntryModal
+        isOpen={isManualEntryOpen}
+        onClose={() => setIsManualEntryOpen(false)}
+        projectId={projectId}
+        tasks={tasks}
+        onEntryAdded={fetchTimeEntries}
+      />
     </div>
   );
 };
