@@ -15,6 +15,8 @@ import { ContactUs } from "./pages/ContactUs";
 import { CancellationRefunds } from "./pages/CancellationRefunds";
 import { ShippingPolicy } from "./pages/ShippingPolicy";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { NotificationSystem } from "@/components/NotificationSystem";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -79,7 +81,10 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <SubscriptionProvider>
-          <AppContent />
+          <ErrorBoundary>
+            <NotificationSystem />
+            <AppContent />
+          </ErrorBoundary>
         </SubscriptionProvider>
       </AuthProvider>
     </TooltipProvider>

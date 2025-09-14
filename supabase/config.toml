@@ -12,3 +12,18 @@ verify_jwt = false
 
 [functions.handle-razorpay-webhook]
 verify_jwt = false
+
+[functions.create-razorpay-subscription]
+verify_jwt = true
+
+[functions.cancel-razorpay-subscription]
+verify_jwt = true
+
+[functions.reactivate-subscription]
+verify_jwt = true
+
+[functions.subscription-maintenance]
+verify_jwt = false
+
+[functions.setup-cron-job]
+verify_jwt = false

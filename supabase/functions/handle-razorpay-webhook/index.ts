@@ -118,14 +118,19 @@ serve(async (req) => {
       }
 
       if (userId && plan) {
-        // Use upsert to handle both new and existing users
+        // Calculate subscription period end (30 days from now for testing)
+        const periodEnd = new Date();
+        periodEnd.setDate(periodEnd.getDate() + 30);
+
+        // Use upsert to handle both new and existing users with new schema
         const { error } = await supabaseClient
           .from('user_subscriptions')
           .upsert({
             user_id: userId,
-            subscription_status: plan,
-            subscription_cancel_at_period_end: false,
-            subscription_period_end: null,
+            status: plan === 'pro' ? 'active' : 'trial',
+            razorpay_subscription_id: subscriptionEntity?.id,
+            cancel_at_period_end: false,
+            period_end: periodEnd.toISOString(),
             updated_at: new Date().toISOString(),
           }, {
             onConflict: 'user_id'
