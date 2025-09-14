@@ -52,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
     const confirmUrl = `${site_url || Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to || site_url}`;
 
     const { error } = await resend.emails.send({
-      from: "Freelance Dashboard <onboarding@resend.dev>",
+      from: "SoloFlow <notify@soloflow.pro>",
       to: [user.email],
       subject: subject,
       html: `
