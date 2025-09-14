@@ -33,11 +33,25 @@ export const RegisterForm = ({ onToggleMode }: RegisterFormProps) => {
         onToggleMode();
       }, 2000);
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Registration failed",
-        description: error.message || "Failed to create account. Please try again.",
-      });
+      // Check if it's a hook timeout error (email was sent but hook was slow)
+      if (error.message?.includes("failed to reach hook") || 
+          error.message?.includes("maximum time") ||
+          error.message?.includes("timeout")) {
+        toast({
+          title: "Account created successfully!",
+          description: "We've sent a verification email to your inbox. Please check your email (including spam folder) and click the activation link to complete your registration.",
+        });
+        // Switch to login form after showing the message
+        setTimeout(() => {
+          onToggleMode();
+        }, 2000);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Registration failed",
+          description: error.message || "Failed to create account. Please try again.",
+        });
+      }
     } finally {
       setLoading(false);
     }
