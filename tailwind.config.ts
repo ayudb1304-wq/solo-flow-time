@@ -63,7 +63,7 @@ export default {
 					draft: 'hsl(var(--status-draft))'
 				},
 				success: {
-					DEFAULT: 'hsl(145, 63%, 42%)',
+					DEFAULT: 'hsl(140, 60%, 48%)',
 					foreground: 'hsl(0, 0%, 100%)'
 				},
 				console: {
