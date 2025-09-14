@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { User, Building, Settings, Crown, Zap, Star, DollarSign, Upload, Palette } from "lucide-react";
+import { User, Building, Settings, Crown, Zap, Star, DollarSign, Upload, Palette, Link } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +43,7 @@ export const SettingsPage = () => {
   const { toast } = useToast();
   const { currency, updateCurrency } = useCurrency();
   const { plan } = useSubscription();
+  const { linkGoogleAccount } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -467,6 +468,30 @@ export const SettingsPage = () => {
                     <li>• Welcome back modal helps you manage idle time when you return</li>
                   </ul>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-foreground">Google Account</h4>
+                  <p className="text-xs text-muted-foreground">Link your Google account for easier sign-in</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await linkGoogleAccount();
+                    } catch (error) {
+                      console.error('Failed to link Google account:', error);
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Link className="h-4 w-4" />
+                  Link Google Account
+                </Button>
               </div>
             </div>
           </CardContent>

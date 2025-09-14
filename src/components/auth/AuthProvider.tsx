@@ -10,6 +10,8 @@ interface AuthContextType {
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  linkGoogleAccount: () => Promise<void>;
   loading: boolean;
   isSessionValid: boolean;
 }
@@ -220,8 +222,46 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      }
+    });
+    
+    if (error) {
+      toast({
+        title: "Google sign-in failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const linkGoogleAccount = async () => {
+    const { error } = await supabase.auth.linkIdentity({
+      provider: 'google'
+    });
+    
+    if (error) {
+      toast({
+        title: "Account linking failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+    
+    toast({
+      title: "Account linked successfully",
+      description: "Your Google account has been linked to your profile.",
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, login, register, logout, resetPassword, loading, isSessionValid }}>
+    <AuthContext.Provider value={{ user, session, login, register, logout, resetPassword, signInWithGoogle, linkGoogleAccount, loading, isSessionValid }}>
       {children}
     </AuthContext.Provider>
   );
