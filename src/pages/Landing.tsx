@@ -2,8 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Users, FileText, BarChart3, Zap, Star, Check, ArrowRight, Sparkles, Shield, Crown } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { Link } from "react-router-dom";
 
 interface LandingProps {
   onGetStarted: () => void;
@@ -12,27 +11,12 @@ interface LandingProps {
 export const Landing = ({ onGetStarted }: LandingProps) => {
   const [activeTab, setActiveTab] = useState<'freelancer' | 'agency'>('freelancer');
   const [scrollY, setScrollY] = useState(0);
-  const [searchParams] = useSearchParams();
-  const { toast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    // Check for successful verification
-    const verified = searchParams.get('verified');
-    if (verified === '1') {
-      toast({
-        title: "Account activated successfully! 🎉",
-        description: "Welcome to SoloFlow! Click 'Sign In' to access your dashboard.",
-      });
-      // Clean up URL
-      window.history.replaceState({}, '', '/');
-    }
-  }, [searchParams, toast]);
 
   const features = [
     {
