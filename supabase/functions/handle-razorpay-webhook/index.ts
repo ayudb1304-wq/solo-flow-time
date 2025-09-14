@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,6 +19,43 @@ serve(async (req) => {
     );
 
     const body = await req.text();
+    
+    // Verify webhook signature for security
+    const signature = req.headers.get('x-razorpay-signature');
+    const webhookSecret = Deno.env.get('RAZORPAY_WEBHOOK_SECRET');
+    
+    if (!webhookSecret) {
+      console.error('Webhook secret not configured');
+      throw new Error('Webhook secret not configured');
+    }
+    
+    if (!signature) {
+      console.error('Missing webhook signature');
+      throw new Error('Missing webhook signature');
+    }
+    
+    // Generate expected signature
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(webhookSecret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    
+    const expectedSignatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
+    const expectedSignature = Array.from(new Uint8Array(expectedSignatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
+    if (signature !== expectedSignature) {
+      console.error('Invalid webhook signature');
+      throw new Error('Invalid webhook signature');
+    }
+    
+    console.log('Webhook signature verified successfully');
+    
     const webhookData = JSON.parse(body);
 
     console.log('Webhook received:', webhookData);
