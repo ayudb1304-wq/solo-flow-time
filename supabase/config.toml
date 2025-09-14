@@ -1,11 +1,19 @@
 project_id = "mkhqhlrxkabqqmzgzhwx"
 
 [auth]
-hook_send_email_enabled = true
-hook_send_email_uri = "https://mkhqhlrxkabqqmzgzhwx.supabase.co/functions/v1/send-auth-email"
+hook_send_email_enabled = false
 
 [functions.send-auth-email]
 verify_jwt = false
 
 [functions.send-welcome-email]
+verify_jwt = false
+
+[functions.send-verification-email]
+verify_jwt = false
+
+[functions.verify-email-token]
+verify_jwt = false
+
+[functions.resend-verification]
 verify_jwt = false

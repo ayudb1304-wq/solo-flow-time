@@ -12,6 +12,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   loading: boolean;
   isSessionValid: boolean;
+  isEmailVerified: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSessionValid, setIsSessionValid] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
   const { toast } = useToast();
 
   // Helper function to check if session is valid and not expired
@@ -43,6 +45,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const expiresAt = session.expires_at || 0;
     
     return expiresAt > now;
+  };
+
+  // Check email verification status
+  const checkEmailVerification = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('email_verified')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error checking email verification:', error);
+        setIsEmailVerified(false);
+        return;
+      }
+
+      setIsEmailVerified(profile?.email_verified || false);
+    } catch (error) {
+      console.error('Error in checkEmailVerification:', error);
+      setIsEmailVerified(false);
+    }
   };
 
   useEffect(() => {
@@ -65,6 +89,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setSession(null);
             setUser(null);
             setIsSessionValid(false);
+            setIsEmailVerified(false);
           }
         }
         
@@ -74,6 +99,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setSession(null);
           setUser(null);
           setIsSessionValid(false);
+          setIsEmailVerified(false);
+        }
+        
+        // Check email verification for valid sessions
+        if (session && isValid && session.user) {
+          setTimeout(() => {
+            checkEmailVerification(session.user.id);
+          }, 0);
+        } else {
+          setIsEmailVerified(false);
         }
       }
     );
@@ -100,6 +135,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setSession(null);
             setUser(null);
             setIsSessionValid(false);
+            setIsEmailVerified(false);
+          } else if (session && isValid && session.user) {
+            // Check email verification for initial session
+            setTimeout(() => {
+              checkEmailVerification(session.user.id);
+            }, 0);
           }
         }
       } catch (error) {
@@ -107,6 +148,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(null);
         setUser(null);
         setIsSessionValid(false);
+        setIsEmailVerified(false);
       } finally {
         setLoading(false);
       }
@@ -134,32 +176,60 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const register = async (email: string, password: string, name?: string) => {
-    const redirectUrl = `${window.location.origin}/auth`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: name,
+    try {
+      // First create the user account (this will be unconfirmed)
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          }
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "Registration failed", 
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      if (data.user) {
+        // Send custom verification email
+        const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
+          body: {
+            userId: data.user.id,
+            email: data.user.email,
+            isResend: false
+          }
+        });
+
+        if (emailError) {
+          console.error('Failed to send verification email:', emailError);
+          toast({
+            title: "Registration completed", 
+            description: "Account created but failed to send verification email. You can request a new one from the login page.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Registration successful!", 
+            description: "Please check your email to verify your account before signing in.",
+          });
         }
       }
-    });
-    
-    if (error) {
+    } catch (error: any) {
+      console.error('Registration error:', error);
       toast({
         title: "Registration failed", 
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
       throw error;
     }
-
-    toast({
-      title: "Registration successful!",
-      description: "Please check your email to confirm your account.",
-    });
   };
 
   const resetPassword = async (email: string) => {
@@ -190,6 +260,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSession(null);
       setUser(null);
       setIsSessionValid(false);
+      setIsEmailVerified(false);
       
       // Then attempt to sign out from Supabase
       const { error } = await supabase.auth.signOut();
@@ -211,6 +282,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSession(null);
       setUser(null);
       setIsSessionValid(false);
+      setIsEmailVerified(false);
       
       console.warn('Logout error:', error);
       toast({
@@ -221,7 +293,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, login, register, logout, resetPassword, loading, isSessionValid }}>
+    <AuthContext.Provider value={{ user, session, login, register, logout, resetPassword, loading, isSessionValid, isEmailVerified }}>
       {children}
     </AuthContext.Provider>
   );

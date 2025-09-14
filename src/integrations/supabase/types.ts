@@ -44,6 +44,36 @@ export type Database = {
         }
         Relationships: []
       }
+      email_verification_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          updated_at: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          token: string
+          updated_at?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           client_address: string | null
@@ -106,6 +136,9 @@ export type Database = {
           company_address: string | null
           created_at: string
           currency: string | null
+          email_verification_expires_at: string | null
+          email_verification_token: string | null
+          email_verified: boolean | null
           freelancer_name: string | null
           id: string
           logo_url: string | null
@@ -121,6 +154,9 @@ export type Database = {
           company_address?: string | null
           created_at?: string
           currency?: string | null
+          email_verification_expires_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           freelancer_name?: string | null
           id?: string
           logo_url?: string | null
@@ -136,6 +172,9 @@ export type Database = {
           company_address?: string | null
           created_at?: string
           currency?: string | null
+          email_verification_expires_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           freelancer_name?: string | null
           id?: string
           logo_url?: string | null

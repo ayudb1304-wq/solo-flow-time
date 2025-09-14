@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
+import { VerificationRequired } from "@/components/auth/VerificationRequired";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import Index from "./pages/Index";
 import { Auth } from "./pages/Auth";
@@ -19,8 +20,13 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, isEmailVerified } = useAuth();
   const navigate = useNavigate();
+
+  // Show verification required if user is logged in but email not verified
+  if (user && !isEmailVerified) {
+    return <VerificationRequired userEmail={user.email} />;
+  }
 
   if (!user) {
     return (
