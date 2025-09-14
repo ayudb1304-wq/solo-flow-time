@@ -264,7 +264,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-lg blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <img 
-                src="/lovable-uploads/af2340bb-6107-4732-8fe9-c5fbd41fce9a.png" 
+                src="/assets/dashboard-screenshot.png" 
                 alt="SoloFlow Dashboard Overview" 
                 className="w-full rounded-lg shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.2)] transition-all duration-500 hover:scale-105 relative z-10"
                 style={{ transform: `translateY(${scrollY * -0.01}px)` }}
