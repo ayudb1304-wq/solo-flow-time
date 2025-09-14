@@ -424,7 +424,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      subscription_dashboard: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          currency: string | null
+          days_remaining: number | null
+          freelancer_name: string | null
+          health_status: string | null
+          last_updated: string | null
+          next_billing_date: string | null
+          period_end: string | null
+          razorpay_subscription_id: string | null
+          status: Database["public"]["Enums"]["subscription_status_enum"] | null
+          subscription_created: string | null
+          subscription_summary: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       manage_subscription_data: {
