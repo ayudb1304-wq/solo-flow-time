@@ -312,7 +312,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
         >
           <div className="order-2 lg:order-1">
             <img 
-              src="/lovable-uploads/0c8eb70d-22bc-4d29-8c3a-56689c725cb6.png" 
+              src="/assets/projects-screenshot.png" 
               alt="SoloFlow Projects Organization" 
               className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
             />
@@ -338,7 +338,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </div>
           <div>
             <img 
-              src="/lovable-uploads/58636014-5a12-483e-bf06-caf275ac083d.png" 
+              src="/assets/tasks-screenshot.png" 
               alt="SoloFlow Task Management" 
               className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
             />
@@ -352,7 +352,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
         >
           <div className="order-2 lg:order-1">
             <img 
-              src="/lovable-uploads/4fa64490-8be7-413e-a798-7f38b0e29600.png" 
+              src="/assets/time-screenshot.png" 
               alt="SoloFlow Time Tracking" 
               className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
             />
@@ -378,7 +378,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </div>
           <div>
             <img 
-              src="/lovable-uploads/d05ad3d7-f405-4837-aaeb-46fd7404ffc4.png" 
+              src="/assets/invoice-screenshot.png" 
               alt="SoloFlow Invoice Generation" 
               className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
             />
