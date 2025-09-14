@@ -1,9 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
-import { Webhook } from 'https://esm.sh/standardwebhooks@1.0.0';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") || "your-webhook-secret";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,24 +19,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const payload = await req.text();
-    const headers = Object.fromEntries(req.headers);
+    // Parse the payload immediately - no signature verification for Supabase auth hooks
+    const emailData = await req.json();
     
-    let emailData;
-    const signatureHeader = req.headers.get('webhook-signature');
-    const canVerify = Boolean(signatureHeader) && hookSecret && hookSecret !== "your-webhook-secret";
-    if (canVerify) {
-      try {
-        const wh = new Webhook(hookSecret);
-        const verified = wh.verify(payload, headers) as any;
-        emailData = verified;
-      } catch (webhookError) {
-        console.log('Webhook signature verification failed; proceeding without verification');
-        emailData = JSON.parse(payload);
-      }
-    } else {
-      emailData = JSON.parse(payload);
-    }
+    console.log('Received email data:', { 
+      hasUser: Boolean(emailData.user),
+      hasEmailData: Boolean(emailData.email_data),
+      emailActionType: emailData.email_data?.email_action_type 
+    });
 
     const {
       user,
@@ -119,9 +107,9 @@ const handler = async (req: Request): Promise<Response> => {
             <div class="content">
               <h2>${headerText}</h2>
               <p>${introText}</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${confirmUrl}" class="button">Activate Your Account</a>
-              </div>
+               <div style="text-align: center; margin: 30px 0;">
+                 <a href="${confirmUrl}" class="button">${actionText}</a>
+               </div>
               <p>If you didn't create an account with SoloFlow, you can safely ignore this email.</p>
               <p style="color: #666; font-size: 14px; margin-top: 30px;">
                 If the button doesn't work, copy and paste this link into your browser:<br>
