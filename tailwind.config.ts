@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-	darkMode: ["class"],
+	
 	content: [
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
@@ -61,6 +61,10 @@ export default {
 					pending: 'hsl(var(--status-pending))',
 					completed: 'hsl(var(--status-completed))',
 					draft: 'hsl(var(--status-draft))'
+				},
+				success: {
+					DEFAULT: 'hsl(145, 63%, 42%)',
+					foreground: 'hsl(0, 0%, 100%)'
 				}
 			},
 			backgroundImage: {
