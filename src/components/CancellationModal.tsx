@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -72,6 +72,9 @@ export const CancellationModal = ({
                 <AlertCircle className="h-5 w-5 text-orange-500" />
                 We're sorry to see you go!
               </DialogTitle>
+              <DialogDescription>
+                Cancel your subscription while keeping access until your billing period ends.
+              </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-6">
@@ -152,6 +155,9 @@ export const CancellationModal = ({
                 </Button>
                 Help us improve
               </DialogTitle>
+              <DialogDescription>
+                Your feedback helps us make our service better for everyone.
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6">

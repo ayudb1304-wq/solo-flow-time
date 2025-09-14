@@ -175,14 +175,14 @@ serve(async (req) => {
       const userId = subscription.notes?.user_id;
 
       if (userId) {
-        // Use upsert to handle both new and existing users  
+        // Use upsert to handle both new and existing users with new schema
         const { error } = await supabaseClient
           .from('user_subscriptions')
           .upsert({
             user_id: userId,
-            subscription_status: 'trial',
-            subscription_cancel_at_period_end: false,
-            subscription_period_end: null,
+            status: 'cancelled',
+            cancel_at_period_end: false,
+            period_end: null,
             updated_at: new Date().toISOString(),
           }, {
             onConflict: 'user_id'
