@@ -49,17 +49,20 @@ const handler = async (req: Request): Promise<Response> => {
       introText = "Please confirm your new email address by clicking the button below.";
     }
 
+    // Use the standard Supabase verification URL format
     const supabaseUrl = (Deno.env.get('SUPABASE_URL') || '').replace(/\/+$/,'');
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
-    const redirect = redirect_to || (site_url ? `${site_url.replace(/\/+$/,'')}/auth` : 'https://soloflow.pro/auth');
-    const params = new URLSearchParams();
-    if (token_hash) params.set('token_hash', token_hash);
-    if (token) params.set('token', token);
-    params.set('type', email_action_type);
-    params.set('redirect_to', redirect);
-    if (anonKey) params.set('apikey', anonKey);
-    console.log('Constructed verify link params:', { hasToken: Boolean(token), hasTokenHash: Boolean(token_hash), type: email_action_type, redirect });
-    const confirmUrl = `${supabaseUrl}/auth/v1/verify?${params.toString()}`;
+    const redirect = redirect_to || 'https://soloflow.pro/auth';
+    
+    // Build the verification URL - use token_hash for email verification
+    const confirmUrl = `${supabaseUrl}/auth/v1/verify?token_hash=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect)}&apikey=${anonKey}`;
+    
+    console.log('Sending verification email:', { 
+      email: user.email, 
+      type: email_action_type, 
+      hasTokenHash: Boolean(token_hash),
+      redirectTo: redirect 
+    });
 
     const { error } = await resend.emails.send({
       from: "SoloFlow <notify@soloflow.pro>",
