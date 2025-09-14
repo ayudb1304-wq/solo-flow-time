@@ -80,15 +80,18 @@ serve(async (req) => {
       }
 
       if (userId && plan) {
+        // Use upsert to handle both new and existing users
         const { error } = await supabaseClient
-          .from('profiles')
-          .update({
+          .from('user_subscriptions')
+          .upsert({
+            user_id: userId,
             subscription_status: plan,
             subscription_cancel_at_period_end: false,
             subscription_period_end: null,
             updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', userId);
+          }, {
+            onConflict: 'user_id'
+          });
 
         if (error) {
           console.error('Error updating subscription:', error);
@@ -131,13 +134,18 @@ serve(async (req) => {
       const userId = subscription.notes?.user_id;
 
       if (userId) {
+        // Use upsert to handle both new and existing users  
         const { error } = await supabaseClient
-          .from('profiles')
-          .update({
+          .from('user_subscriptions')
+          .upsert({
+            user_id: userId,
             subscription_status: 'trial',
+            subscription_cancel_at_period_end: false,
+            subscription_period_end: null,
             updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', userId);
+          }, {
+            onConflict: 'user_id'
+          });
 
         if (error) {
           console.error('Error downgrading subscription:', error);

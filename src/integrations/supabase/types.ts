@@ -136,16 +136,9 @@ export type Database = {
           company_address: string | null
           created_at: string
           currency: string | null
-          email_verification_expires_at: string | null
-          email_verification_token: string | null
-          email_verified: boolean | null
           freelancer_name: string | null
           id: string
           logo_url: string | null
-          stripe_customer_id: string | null
-          subscription_cancel_at_period_end: boolean | null
-          subscription_period_end: string | null
-          subscription_status: string | null
           updated_at: string
           user_id: string
         }
@@ -154,16 +147,9 @@ export type Database = {
           company_address?: string | null
           created_at?: string
           currency?: string | null
-          email_verification_expires_at?: string | null
-          email_verification_token?: string | null
-          email_verified?: boolean | null
           freelancer_name?: string | null
           id?: string
           logo_url?: string | null
-          stripe_customer_id?: string | null
-          subscription_cancel_at_period_end?: boolean | null
-          subscription_period_end?: string | null
-          subscription_status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -172,16 +158,9 @@ export type Database = {
           company_address?: string | null
           created_at?: string
           currency?: string | null
-          email_verification_expires_at?: string | null
-          email_verification_token?: string | null
-          email_verified?: boolean | null
           freelancer_name?: string | null
           id?: string
           logo_url?: string | null
-          stripe_customer_id?: string | null
-          subscription_cancel_at_period_end?: boolean | null
-          subscription_period_end?: string | null
-          subscription_status?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -379,6 +358,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_payment_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          stripe_customer_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          subscription_cancel_at_period_end: boolean
+          subscription_period_end: string | null
+          subscription_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          subscription_cancel_at_period_end?: boolean
+          subscription_period_end?: string | null
+          subscription_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          subscription_cancel_at_period_end?: boolean
+          subscription_period_end?: string | null
+          subscription_status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

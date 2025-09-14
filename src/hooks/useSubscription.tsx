@@ -66,12 +66,24 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
   const fetchSubscriptionStatus = async () => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_subscriptions')
         .select('subscription_status, subscription_period_end, subscription_cancel_at_period_end')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      
+      // If no subscription record exists, create one with trial status
+      if (!data) {
+        await supabase
+          .from('user_subscriptions')
+          .insert({ 
+            user_id: user?.id,
+            subscription_status: 'trial'
+          });
+        setPlan('trial');
+        return;
+      }
       
       // Check if subscription has expired and should revert to trial
       const currentStatus = data.subscription_status as SubscriptionPlan || 'trial';
@@ -81,7 +93,7 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
       // If subscription was cancelled and period has ended, revert to trial
       if (cancelAtPeriodEnd && periodEnd && new Date(periodEnd) <= new Date() && currentStatus !== 'trial') {
         await supabase
-          .from('profiles')
+          .from('user_subscriptions')
           .update({ 
             subscription_status: 'trial',
             subscription_cancel_at_period_end: false,

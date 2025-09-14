@@ -34,13 +34,15 @@ serve(async (req) => {
     // In test mode, we'll schedule cancellation at period end
     // In production, you would call Razorpay API to schedule cancellation
     const { error } = await supabaseClient
-      .from('profiles')
-      .update({
+      .from('user_subscriptions')
+      .upsert({
+        user_id: user.id,
         subscription_cancel_at_period_end: true,
         subscription_period_end: periodEnd.toISOString(),
         updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', user.id);
+      }, {
+        onConflict: 'user_id'
+      });
 
     if (error) {
       console.error('Error scheduling cancellation:', error);
