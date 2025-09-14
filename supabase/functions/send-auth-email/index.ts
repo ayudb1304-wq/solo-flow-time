@@ -14,14 +14,19 @@ const handler = async (req: Request): Promise<Response> => {
     const payload = await req.text();
     const headers = Object.fromEntries(req.headers);
     
-    // For development, we'll skip webhook verification if secret is not set properly
     let emailData;
-    try {
-      const wh = new Webhook(hookSecret);
-      const verified = wh.verify(payload, headers) as any;
-      emailData = verified;
-    } catch (webhookError) {
-      console.log('Webhook verification failed, parsing directly:', webhookError);
+    const signatureHeader = req.headers.get('webhook-signature');
+    const canVerify = Boolean(signatureHeader) && hookSecret && hookSecret !== "your-webhook-secret";
+    if (canVerify) {
+      try {
+        const wh = new Webhook(hookSecret);
+        const verified = wh.verify(payload, headers) as any;
+        emailData = verified;
+      } catch (webhookError) {
+        console.log('Webhook signature verification failed; proceeding without verification');
+        emailData = JSON.parse(payload);
+      }
+    } else {
       emailData = JSON.parse(payload);
     }
 
@@ -54,13 +59,22 @@ const handler = async (req: Request): Promise<Response> => {
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     const redirect = redirect_to || 'https://soloflow.pro/auth';
     
-    // Build the verification URL - use token_hash for email verification
-    const confirmUrl = `${supabaseUrl}/auth/v1/verify?token_hash=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect)}&apikey=${anonKey}`;
+    // Build the verification URL - prefer token_hash, fallback to token
+    const tokenParam = token_hash
+      ? `token_hash=${encodeURIComponent(token_hash)}`
+      : token
+        ? `token=${encodeURIComponent(token)}`
+        : '';
+    if (!tokenParam) {
+      throw new Error('Missing verification token from email payload');
+    }
+    const confirmUrl = `${supabaseUrl}/auth/v1/verify?${tokenParam}&type=${encodeURIComponent(email_action_type)}&redirect_to=${encodeURIComponent(redirect)}${anonKey ? `&apikey=${anonKey}` : ''}`;
     
     console.log('Sending verification email:', { 
       email: user.email, 
       type: email_action_type, 
       hasTokenHash: Boolean(token_hash),
+      hasToken: Boolean(token),
       redirectTo: redirect 
     });
 
