@@ -34,7 +34,7 @@ export const TopBar = ({ onMenuClick, onPageChange }: TopBarProps) => {
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <img 
-              src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
+              src="/assets/soloflow-logo.png" 
               alt="SoloFlow Logo" 
               className="h-8 w-8"
             />

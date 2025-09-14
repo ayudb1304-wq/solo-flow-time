@@ -28,7 +28,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="relative">
                 <img 
-                  src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
+                  src="/assets/soloflow-logo.png" 
                   alt="SoloFlow Logo" 
                   className="h-12 w-12"
                 />

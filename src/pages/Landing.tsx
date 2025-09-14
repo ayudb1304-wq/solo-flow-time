@@ -108,7 +108,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <img 
-                src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
+                src="/assets/soloflow-logo.png" 
                 alt="SoloFlow Logo" 
                 className="h-8 w-8"
               />
@@ -522,7 +522,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <img 
-                  src="/lovable-uploads/e339f632-47ba-4c99-aa28-fec9c874e878.png" 
+                  src="/assets/soloflow-logo.png" 
                   alt="SoloFlow Logo" 
                   className="h-8 w-8"
                 />
