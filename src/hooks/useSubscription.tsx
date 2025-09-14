@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useToast } from '@/hooks/use-toast';
 
 export type SubscriptionPlan = 'trial' | 'pro';
 
@@ -55,14 +56,59 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
   const [plan, setPlan] = useState<SubscriptionPlan>('trial');
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
       fetchSubscriptionStatus();
+      
+      // Set up real-time subscription for subscription changes
+      const subscription = supabase
+        .channel('subscription-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_subscriptions',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Subscription updated:', payload);
+            if (payload.new && typeof payload.new === 'object' && 'subscription_status' in payload.new) {
+              const newStatus = (payload.new as any).subscription_status;
+              const oldStatus = plan;
+              
+              setPlan(newStatus);
+              
+              // Show success message when upgrading to pro
+              if (oldStatus === 'trial' && newStatus === 'pro') {
+                toast({
+                  title: "🎉 Payment Successful!",
+                  description: "Welcome to Pro! All premium features are now unlocked.",
+                });
+              }
+              
+              // Show message when downgrading
+              if (oldStatus === 'pro' && newStatus === 'trial') {
+                toast({
+                  title: "Subscription Updated",
+                  description: "Your subscription has been changed to trial.",
+                });
+              }
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(subscription);
+      };
     } else {
+      setPlan('trial');
       setLoading(false);
     }
-  }, [user]);
+  }, [user, plan, toast]);
 
   const fetchSubscriptionStatus = async () => {
     try {

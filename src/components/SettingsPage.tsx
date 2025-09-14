@@ -202,37 +202,44 @@ export const SettingsPage = () => {
       
       toast({
         title: "Redirecting to payment",
-        description: "Complete your payment to upgrade your plan. After payment, please refresh the page or wait for automatic status update.",
+        description: "Complete your payment to upgrade your plan. Your subscription will be activated automatically upon successful payment.",
       });
 
-      // Set up a periodic check for subscription status after payment
+      // Set up a more robust check for subscription status after payment
+      let pollCount = 0;
+      const maxPolls = 60; // Check for up to 5 minutes (60 * 5 seconds)
+      
       const checkPaymentStatus = setInterval(async () => {
         try {
+          pollCount++;
           await refreshSubscription();
+          
           // Check if user becomes pro
           const { data: subData } = await supabase
             .from('user_subscriptions')
-            .select('subscription_status')
+            .select('subscription_status, updated_at')
             .eq('user_id', user?.id)
             .maybeSingle();
           
           if (subData?.subscription_status === 'pro') {
             clearInterval(checkPaymentStatus);
-            toast({
-              title: "Payment successful!",
-              description: "Welcome to Pro! All features are now unlocked.",
-            });
             await fetchProfile(); // Refresh profile data
+            // Note: Success message is now handled by the real-time subscription in useSubscription
+          }
+          
+          // Stop polling after maximum attempts
+          if (pollCount >= maxPolls) {
+            clearInterval(checkPaymentStatus);
+            toast({
+              title: "Payment status check timeout",
+              description: "If payment was successful, please refresh the page or contact support if issues persist.",
+              variant: "destructive",
+            });
           }
         } catch (error) {
           console.error('Error checking payment status:', error);
         }
       }, 5000); // Check every 5 seconds
-
-      // Stop checking after 5 minutes
-      setTimeout(() => {
-        clearInterval(checkPaymentStatus);
-      }, 300000);
 
     } catch (error) {
       toast({

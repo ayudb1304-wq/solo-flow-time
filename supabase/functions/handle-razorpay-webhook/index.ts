@@ -137,6 +137,9 @@ serve(async (req) => {
         }
 
         console.log(`Updated user ${userId} to ${plan} plan`);
+        
+        // Force a small delay to ensure the database update is committed
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // Send welcome email to new pro subscribers
         if (plan === 'pro') {
