@@ -52,7 +52,14 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = (Deno.env.get('SUPABASE_URL') || '').replace(/\/+$/,'');
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     const redirect = redirect_to || (site_url ? `${site_url.replace(/\/+$/,'')}/auth` : 'https://soloflow.pro/auth');
-    const confirmUrl = `${supabaseUrl}/auth/v1/verify?token_hash=${encodeURIComponent(token_hash || '')}&type=${encodeURIComponent(email_action_type)}&redirect_to=${encodeURIComponent(redirect)}${anonKey ? `&apikey=${encodeURIComponent(anonKey)}` : ''}`;
+    const params = new URLSearchParams();
+    if (token_hash) params.set('token_hash', token_hash);
+    if (token) params.set('token', token);
+    params.set('type', email_action_type);
+    params.set('redirect_to', redirect);
+    if (anonKey) params.set('apikey', anonKey);
+    console.log('Constructed verify link params:', { hasToken: Boolean(token), hasTokenHash: Boolean(token_hash), type: email_action_type, redirect });
+    const confirmUrl = `${supabaseUrl}/auth/v1/verify?${params.toString()}`;
 
     const { error } = await resend.emails.send({
       from: "SoloFlow <notify@soloflow.pro>",
