@@ -67,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Use the standard Supabase verification URL format
     const supabaseUrl = (Deno.env.get('SUPABASE_URL') || '').replace(/\/+$/,'');
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
-    const redirect = redirect_to || 'https://soloflow.pro/?verified=1';
+    const redirect = 'https://soloflow.pro/?verified=1';
     
     // Build the verification URL - prefer token_hash, fallback to token
     const tokenParam = token_hash
