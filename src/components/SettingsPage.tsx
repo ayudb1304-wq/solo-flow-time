@@ -33,6 +33,7 @@ interface UserSubscription {
 export const SettingsPage = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(null);
+  const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
@@ -52,8 +53,43 @@ export const SettingsPage = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      checkGoogleAccount();
     }
   }, [user]);
+
+  const checkGoogleAccount = async () => {
+    if (!user) return;
+    
+    try {
+      // Check if user has Google identity linked
+      const { data: { identities } } = await supabase.auth.getUserIdentities();
+      const hasGoogle = identities?.some(identity => identity.provider === 'google') || false;
+      setHasGoogleAccount(hasGoogle);
+    } catch (error) {
+      console.error('Error checking Google account:', error);
+      setHasGoogleAccount(false);
+    }
+  };
+
+  const handleGoogleAccountAction = async () => {
+    if (hasGoogleAccount) {
+      // Show info that account is already linked
+      toast({
+        title: "Google Account Linked",
+        description: "Your Google account is already linked to this account",
+      });
+    } else {
+      try {
+        await linkGoogleAccount();
+        // Check again after linking
+        setTimeout(() => {
+          checkGoogleAccount();
+        }, 1000);
+      } catch (error) {
+        console.error('Failed to link Google account:', error);
+      }
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -495,22 +531,30 @@ export const SettingsPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-medium text-foreground">Google Account</h4>
-                  <p className="text-xs text-muted-foreground">Link your Google account for easier sign-in</p>
+                  <p className="text-xs text-muted-foreground">
+                    {hasGoogleAccount 
+                      ? "Your Google account is linked for easier sign-in" 
+                      : "Link your Google account for easier sign-in"
+                    }
+                  </p>
                 </div>
                 <Button
-                  variant="outline"
+                  variant={hasGoogleAccount ? "secondary" : "outline"}
                   size="sm"
-                  onClick={async () => {
-                    try {
-                      await linkGoogleAccount();
-                    } catch (error) {
-                      console.error('Failed to link Google account:', error);
-                    }
-                  }}
+                  onClick={handleGoogleAccountAction}
                   className="flex items-center gap-2"
                 >
-                  <Link className="h-4 w-4" />
-                  Link Google Account
+                  {hasGoogleAccount ? (
+                    <>
+                      <div className="w-2 h-2 bg-green-500 rounded-full" />
+                      Linked
+                    </>
+                  ) : (
+                    <>
+                      <Link className="h-4 w-4" />
+                      Link Google Account
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
