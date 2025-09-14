@@ -13,6 +13,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrency, CURRENCY_OPTIONS } from "@/hooks/useCurrency";
 import { useSubscription } from "@/hooks/useSubscription";
+import { SubscriptionManagement } from "./SubscriptionManagement";
 
 interface Profile {
   id: string;
@@ -25,9 +26,9 @@ interface Profile {
 }
 
 interface UserSubscription {
-  subscription_status: string;
-  subscription_cancel_at_period_end: boolean;
-  subscription_period_end: string | null;
+  status: string;
+  cancel_at_period_end: boolean;
+  period_end: string | null;
 }
 
 export const SettingsPage = () => {
@@ -105,7 +106,7 @@ export const SettingsPage = () => {
       // Fetch subscription data
       const { data: subscriptionData, error: subscriptionError } = await supabase
         .from('user_subscriptions')
-        .select('subscription_status, subscription_cancel_at_period_end, subscription_period_end')
+        .select('status, cancel_at_period_end, period_end')
         .eq('user_id', user?.id)
         .maybeSingle();
 
@@ -113,9 +114,9 @@ export const SettingsPage = () => {
       
       setProfile(profileData);
       setUserSubscription(subscriptionData || {
-        subscription_status: 'trial',
-        subscription_cancel_at_period_end: false,
-        subscription_period_end: null
+        status: 'trial',
+        cancel_at_period_end: false,
+        period_end: null
       });
       
       setFormData({
@@ -217,11 +218,11 @@ export const SettingsPage = () => {
           // Check if user becomes pro
           const { data: subData } = await supabase
             .from('user_subscriptions')
-            .select('subscription_status, updated_at')
+            .select('status, updated_at')
             .eq('user_id', user?.id)
             .maybeSingle();
           
-          if (subData?.subscription_status === 'pro') {
+          if (subData?.status === 'active') {
             clearInterval(checkPaymentStatus);
             await fetchProfile(); // Refresh profile data
             // Note: Success message is now handled by the real-time subscription in useSubscription
@@ -375,16 +376,16 @@ export const SettingsPage = () => {
     }
   };
 
-  const getPlanIcon = (plan: string) => {
-    switch (plan) {
-      case 'pro': return <Zap className="h-4 w-4" />;
+  const getPlanIcon = (status: string) => {
+    switch (status) {
+      case 'active': return <Zap className="h-4 w-4" />;
       default: return <Star className="h-4 w-4" />;
     }
   };
 
-  const getPlanColor = (plan: string) => {
-    switch (plan) {
-      case 'pro': return 'bg-blue-500';
+  const getPlanColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-blue-500';
       default: return 'bg-green-500';
     }
   };
@@ -598,121 +599,22 @@ export const SettingsPage = () => {
         </Card>
 
         {/* Subscription Management */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5" />
-              Subscription & Billing
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Current Plan */}
-             <div className="flex items-center justify-between p-4 border rounded-lg">
-               <div className="flex items-center gap-3">
-                 {getPlanIcon(userSubscription?.subscription_status || 'trial')}
-                 <div>
-                   <h3 className="font-semibold capitalize">
-                     {userSubscription?.subscription_status || 'trial'} Plan
-                     {userSubscription?.subscription_cancel_at_period_end && (
-                       <span className="text-orange-600 font-normal text-sm ml-2">(Cancelling)</span>
-                     )}
-                   </h3>
-                   <p className="text-sm text-muted-foreground">
-                     {userSubscription?.subscription_status === 'trial' && 'Limited features - Upgrade for full access'}
-                     {userSubscription?.subscription_status === 'pro' && !userSubscription?.subscription_cancel_at_period_end && 'Unlimited clients & projects'}
-                     {userSubscription?.subscription_cancel_at_period_end && userSubscription?.subscription_period_end && (
-                       <span className="text-orange-600">
-                         Active until {new Date(userSubscription.subscription_period_end).toLocaleDateString()}
-                       </span>
-                     )}
-                   </p>
-                 </div>
-               </div>
-               <Badge variant="secondary" className={`${getPlanColor(userSubscription?.subscription_status || 'trial')} text-white`}>
-                 {userSubscription?.subscription_status === 'trial' ? 'Free' : 
-                  userSubscription?.subscription_cancel_at_period_end ? 'Cancelling' : 'Active'}
-               </Badge>
-             </div>
-
-            {/* Cancel Subscription for Active Plans */}
-            {userSubscription?.subscription_status === 'pro' && !userSubscription?.subscription_cancel_at_period_end && (
-              <div className="mt-6 pt-4 border-t">
-                <div className="text-right">
-                  <Button 
-                    onClick={handleCancelSubscription}
-                    disabled={upgrading}
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-destructive text-xs"
-                  >
-                    {upgrading ? 'Processing...' : 'Cancel subscription'}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Upgrade Options for Trial Users or Users with Cancelled Subscriptions */}
-            {(userSubscription?.subscription_status === 'trial' || userSubscription?.subscription_cancel_at_period_end) && (
-              <div className="space-y-4">
-                {userSubscription?.subscription_cancel_at_period_end && (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-800 text-sm font-medium">
-                      💡 Reactivate your subscription to continue enjoying premium features beyond your current period.
-                    </p>
-                  </div>
-                )}
-                <div className="flex justify-center">
-                  {/* Pro Plan */}
-                  <Card className="border-2 border-blue-200 max-w-sm">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="flex items-center gap-2 text-blue-600">
-                        <Zap className="h-5 w-5" />
-                        Pro Plan
-                      </CardTitle>
-                      <div className="text-2xl font-bold">₹799<span className="text-sm font-normal text-muted-foreground">/month</span></div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <ul className="space-y-2 text-sm">
-                        <li>✓ Unlimited clients & projects</li>
-                        <li>✓ Advanced invoicing</li>
-                        <li>✓ Detailed reports</li>
-                        <li>✓ Priority support</li>
-                      </ul>
-                      <Button 
-                        onClick={() => handleUpgrade('pro')} 
-                        disabled={upgrading}
-                        className="w-full bg-blue-600 hover:bg-blue-700"
-                      >
-                        {upgrading ? 'Processing...' : userSubscription?.subscription_cancel_at_period_end ? 'Reactivate Pro Plan' : 'Upgrade to Pro'}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-
-            {/* Cancellation Notice */}
-            {userSubscription?.subscription_cancel_at_period_end && userSubscription?.subscription_period_end && (
-              <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center mt-0.5">
-                    <span className="text-white text-xs">!</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-orange-800">Subscription Cancellation Scheduled</h4>
-                    <p className="text-orange-700 text-sm mt-1">
-                      Your subscription will remain active until <strong>{new Date(userSubscription.subscription_period_end).toLocaleDateString()}</strong>. 
-                      After this date, your account will be automatically moved to the trial plan.
-                    </p>
-                    <p className="text-orange-600 text-xs mt-2">
-                      You can resubscribe at any time using the upgrade options above.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-2">
+          <SubscriptionManagement
+            subscription={{
+              status: userSubscription?.status === 'active' ? 'active' : 
+                      userSubscription?.status === 'trial' ? 'trial' :
+                      userSubscription?.status === 'pending_cancellation' ? 'pending_cancellation' :
+                      userSubscription?.status === 'cancelled' ? 'cancelled' : 'trial',
+              cancel_at_period_end: userSubscription?.cancel_at_period_end || false,
+              period_end: userSubscription?.period_end,
+              razorpay_subscription_id: undefined
+            }}
+            onRefresh={fetchProfile}
+            onUpgrade={() => handleUpgrade('pro')}
+            upgrading={upgrading}
+          />
+        </div>
 
         {/* Invoice Branding - Pro Users Only */}
         {plan === 'pro' && (
@@ -869,8 +771,8 @@ export const SettingsPage = () => {
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Plan Status</Label>
                 <p className="text-sm bg-muted p-2 rounded capitalize">
-                  {userSubscription?.subscription_status || "trial"}
-                  {userSubscription?.subscription_cancel_at_period_end && " (Cancelling)"}
+                  {userSubscription?.status === 'active' ? 'pro' : userSubscription?.status || "trial"}
+                  {userSubscription?.cancel_at_period_end && " (Cancelling)"}
                 </p>
               </div>
               <div>

@@ -363,6 +363,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          razorpay_customer_id: string | null
           stripe_customer_id: string | null
           updated_at: string
           user_id: string
@@ -370,6 +371,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          razorpay_customer_id?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id: string
@@ -377,6 +379,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          razorpay_customer_id?: string | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id?: string
@@ -385,29 +388,35 @@ export type Database = {
       }
       user_subscriptions: {
         Row: {
+          cancel_at_period_end: boolean
+          cancellation_reason: string | null
           created_at: string
           id: string
-          subscription_cancel_at_period_end: boolean
-          subscription_period_end: string | null
-          subscription_status: string
+          period_end: string | null
+          razorpay_subscription_id: string | null
+          status: Database["public"]["Enums"]["subscription_status_enum"]
           updated_at: string
           user_id: string
         }
         Insert: {
+          cancel_at_period_end?: boolean
+          cancellation_reason?: string | null
           created_at?: string
           id?: string
-          subscription_cancel_at_period_end?: boolean
-          subscription_period_end?: string | null
-          subscription_status?: string
+          period_end?: string | null
+          razorpay_subscription_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status_enum"]
           updated_at?: string
           user_id: string
         }
         Update: {
+          cancel_at_period_end?: boolean
+          cancellation_reason?: string | null
           created_at?: string
           id?: string
-          subscription_cancel_at_period_end?: boolean
-          subscription_period_end?: string | null
-          subscription_status?: string
+          period_end?: string | null
+          razorpay_subscription_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status_enum"]
           updated_at?: string
           user_id?: string
         }
@@ -421,7 +430,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_status_enum:
+        | "trial"
+        | "active"
+        | "pending_cancellation"
+        | "cancelled"
+        | "past_due"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -548,6 +562,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_status_enum: [
+        "trial",
+        "active",
+        "pending_cancellation",
+        "cancelled",
+        "past_due",
+      ],
+    },
   },
 } as const

@@ -25,10 +25,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const body = await req.json();
-    const { cancellation_reason, feedback } = body;
-
-    console.log('Processing cancellation for user:', user.id);
+    console.log('Processing reactivation for user:', user.id);
 
     // Get current subscription details
     const { data: subscription, error: fetchError } = await supabaseClient
@@ -42,39 +39,24 @@ serve(async (req) => {
       throw new Error('Subscription not found');
     }
 
-    // Check if subscription is already cancelled or pending cancellation
-    if (subscription.status === 'cancelled' || subscription.cancel_at_period_end) {
-      throw new Error('Subscription is already cancelled or pending cancellation');
+    // Check if subscription can be reactivated
+    if (!subscription.cancel_at_period_end) {
+      throw new Error('Subscription is not scheduled for cancellation');
     }
 
-    // Calculate period end (current period end or 30 days from now if not set)
-    let periodEnd = subscription.period_end;
-    if (!periodEnd) {
-      const now = new Date();
-      now.setDate(now.getDate() + 30);
-      periodEnd = now.toISOString();
+    // Check if we're still within the current period
+    const periodEnd = subscription.period_end;
+    if (periodEnd && new Date(periodEnd) <= new Date()) {
+      throw new Error('Subscription period has already ended. Please create a new subscription.');
     }
 
-    // In production, you would call Razorpay API to schedule cancellation at period end
-    // For now, we'll just update our database to schedule the cancellation
-    const updateData: any = {
-      cancel_at_period_end: true,
-      period_end: periodEnd,
+    // Reactivate the subscription
+    const updateData = {
+      cancel_at_period_end: false,
+      status: 'active',
+      cancellation_reason: null, // Clear the cancellation reason
       updated_at: new Date().toISOString(),
     };
-
-    // Add cancellation reason if provided
-    if (cancellation_reason) {
-      updateData.cancellation_reason = cancellation_reason;
-      if (feedback) {
-        updateData.cancellation_reason += ` | ${feedback}`;
-      }
-    }
-
-    // Update subscription status to pending_cancellation if it's currently active
-    if (subscription.status === 'active') {
-      updateData.status = 'pending_cancellation';
-    }
 
     const { error: updateError } = await supabaseClient
       .from('user_subscriptions')
@@ -82,11 +64,11 @@ serve(async (req) => {
       .eq('user_id', user.id);
 
     if (updateError) {
-      console.error('Error updating subscription:', updateError);
+      console.error('Error reactivating subscription:', updateError);
       throw updateError;
     }
 
-    // In a real implementation, you would make an API call to Razorpay here:
+    // In a real implementation, you would make an API call to Razorpay here to reactivate:
     // const razorpayResponse = await fetch(`https://api.razorpay.com/v1/subscriptions/${subscription.razorpay_subscription_id}`, {
     //   method: 'PATCH',
     //   headers: {
@@ -94,17 +76,16 @@ serve(async (req) => {
     //     'Content-Type': 'application/json'
     //   },
     //   body: JSON.stringify({
-    //     cancel_at_cycle_end: 1
+    //     cancel_at_cycle_end: 0
     //   })
     // });
 
-    console.log(`Scheduled cancellation for user ${user.id} at period end: ${periodEnd}`);
+    console.log(`Reactivated subscription for user ${user.id}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Subscription scheduled for cancellation at period end',
-        period_end: periodEnd
+        message: 'Subscription reactivated successfully'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -113,7 +94,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Cancellation error:', error);
+    console.error('Reactivation error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

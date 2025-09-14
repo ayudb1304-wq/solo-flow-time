@@ -75,8 +75,8 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
           },
           (payload) => {
             console.log('Subscription updated:', payload);
-            if (payload.new && typeof payload.new === 'object' && 'subscription_status' in payload.new) {
-              const newStatus = (payload.new as any).subscription_status;
+            if (payload.new && typeof payload.new === 'object' && 'status' in payload.new) {
+              const newStatus = (payload.new as any).status === 'active' ? 'pro' : 'trial';
               const oldStatus = plan;
               
               setPlan(newStatus);
@@ -112,11 +112,11 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
 
   const fetchSubscriptionStatus = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('subscription_status, subscription_period_end, subscription_cancel_at_period_end')
-        .eq('user_id', user?.id)
-        .maybeSingle();
+    const { data, error } = await supabase
+      .from('user_subscriptions')
+      .select('status, period_end, cancel_at_period_end')
+      .eq('user_id', user?.id)
+      .maybeSingle();
 
       if (error) throw error;
       
@@ -126,25 +126,25 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
           .from('user_subscriptions')
           .insert({ 
             user_id: user?.id,
-            subscription_status: 'trial'
+            status: 'trial'
           });
         setPlan('trial');
         return;
       }
       
       // Check if subscription has expired and should revert to trial
-      const currentStatus = data.subscription_status as SubscriptionPlan || 'trial';
-      const periodEnd = data.subscription_period_end;
-      const cancelAtPeriodEnd = data.subscription_cancel_at_period_end;
+      const currentStatus = (data.status === 'active' ? 'pro' : 'trial') as SubscriptionPlan;
+      const periodEnd = data.period_end;
+      const cancelAtPeriodEnd = data.cancel_at_period_end;
       
       // If subscription was cancelled and period has ended, revert to trial
       if (cancelAtPeriodEnd && periodEnd && new Date(periodEnd) <= new Date() && currentStatus !== 'trial') {
         await supabase
           .from('user_subscriptions')
           .update({ 
-            subscription_status: 'trial',
-            subscription_cancel_at_period_end: false,
-            subscription_period_end: null
+            status: 'trial',
+            cancel_at_period_end: false,
+            period_end: null
           })
           .eq('user_id', user?.id);
         
