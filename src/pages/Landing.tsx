@@ -298,7 +298,7 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
           </div>
           <div>
             <img 
-              src="/lovable-uploads/c3393c10-c430-44ba-8a9c-057552675889.png" 
+              src="/assets/clients-screenshot.png" 
               alt="SoloFlow Clients Management" 
               className="w-full rounded-lg shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105"
             />
