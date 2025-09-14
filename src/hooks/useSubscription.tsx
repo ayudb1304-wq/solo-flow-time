@@ -17,6 +17,7 @@ interface SubscriptionContextType {
   limits: SubscriptionLimits;
   loading: boolean;
   checkLimit: (feature: keyof SubscriptionLimits, currentCount?: number) => { allowed: boolean; message?: string };
+  refreshSubscription: () => Promise<void>;
 }
 
 const PLAN_LIMITS: Record<SubscriptionPlan, SubscriptionLimits> = {
@@ -140,8 +141,14 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
     return { allowed: true };
   };
 
+  const refreshSubscription = async () => {
+    if (user) {
+      await fetchSubscriptionStatus();
+    }
+  };
+
   return (
-    <SubscriptionContext.Provider value={{ plan, limits, loading, checkLimit }}>
+    <SubscriptionContext.Provider value={{ plan, limits, loading, checkLimit, refreshSubscription }}>
       {children}
     </SubscriptionContext.Provider>
   );

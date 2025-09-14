@@ -47,7 +47,7 @@ export const SettingsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { currency, updateCurrency } = useCurrency();
-  const { plan } = useSubscription();
+  const { plan, refreshSubscription } = useSubscription();
   const { linkGoogleAccount } = useAuth();
 
   useEffect(() => {
@@ -202,8 +202,37 @@ export const SettingsPage = () => {
       
       toast({
         title: "Redirecting to payment",
-        description: "Complete your payment to upgrade your plan",
+        description: "Complete your payment to upgrade your plan. After payment, please refresh the page or wait for automatic status update.",
       });
+
+      // Set up a periodic check for subscription status after payment
+      const checkPaymentStatus = setInterval(async () => {
+        try {
+          await refreshSubscription();
+          // Check if user becomes pro
+          const { data: subData } = await supabase
+            .from('user_subscriptions')
+            .select('subscription_status')
+            .eq('user_id', user?.id)
+            .maybeSingle();
+          
+          if (subData?.subscription_status === 'pro') {
+            clearInterval(checkPaymentStatus);
+            toast({
+              title: "Payment successful!",
+              description: "Welcome to Pro! All features are now unlocked.",
+            });
+            await fetchProfile(); // Refresh profile data
+          }
+        } catch (error) {
+          console.error('Error checking payment status:', error);
+        }
+      }, 5000); // Check every 5 seconds
+
+      // Stop checking after 5 minutes
+      setTimeout(() => {
+        clearInterval(checkPaymentStatus);
+      }, 300000);
 
     } catch (error) {
       toast({
