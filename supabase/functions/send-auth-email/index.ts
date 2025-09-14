@@ -49,7 +49,10 @@ const handler = async (req: Request): Promise<Response> => {
       introText = "Please confirm your new email address by clicking the button below.";
     }
 
-    const confirmUrl = `${(Deno.env.get('SUPABASE_URL') || '').replace(/\/+$/,'')}/auth/v1/verify?token=${encodeURIComponent(token || token_hash)}&type=${encodeURIComponent(email_action_type)}&redirect_to=${encodeURIComponent(redirect_to || (site_url ? `${site_url.replace(/\/+$/,'')}/auth` : 'https://soloflow.pro/auth'))}`;
+    const supabaseUrl = (Deno.env.get('SUPABASE_URL') || '').replace(/\/+$/,'');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    const redirect = redirect_to || (site_url ? `${site_url.replace(/\/+$/,'')}/auth` : 'https://soloflow.pro/auth');
+    const confirmUrl = `${supabaseUrl}/auth/v1/verify?token_hash=${encodeURIComponent(token_hash || '')}&type=${encodeURIComponent(email_action_type)}&redirect_to=${encodeURIComponent(redirect)}${anonKey ? `&apikey=${encodeURIComponent(anonKey)}` : ''}`;
 
     const { error } = await resend.emails.send({
       from: "SoloFlow <notify@soloflow.pro>",
