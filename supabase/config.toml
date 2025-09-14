@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.send-welcome-email]
 verify_jwt = false
+
+[functions.handle-razorpay-webhook]
+verify_jwt = false
