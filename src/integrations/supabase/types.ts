@@ -427,6 +427,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      manage_subscription_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_taken: string
+          days_remaining: number
+          freelancer_name: string
+          new_status: string
+          old_status: string
+          period_end: string
+          user_id: string
+        }[]
+      }
       run_subscription_maintenance: {
         Args: Record<PropertyKey, never>
         Returns: undefined
