@@ -257,8 +257,8 @@ export const Landing = ({ onGetStarted }: LandingProps) => {
 
         {/* Step 1: Dashboard with Enhanced Parallax */}
         <div 
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-20"
-          style={{ transform: `translateY(${scrollY * 0.02}px) translateX(${scrollY * 0.01}px)` }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-20 overflow-hidden"
+          style={{ transform: `translateY(${scrollY * 0.02}px)` }}
         >
           <div className="order-2 lg:order-1">
             <div className="relative group">
