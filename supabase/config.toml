@@ -25,5 +25,5 @@ verify_jwt = true
 [functions.subscription-maintenance]
 verify_jwt = false
 
-[functions.setup-cron-job]
-verify_jwt = false
+[functions.manage-all-subscriptions]
+verify_jwt = true
