@@ -27,58 +27,56 @@ export const SubscriptionDashboard = () => {
   useEffect(() => {
     if (user) {
       fetchSubscriptionData();
+    } else {
+      setSubscriptionData(null);
+      setLoading(false);
     }
   }, [user]);
 
   const fetchSubscriptionData = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select(`
-          user_id,
-          status,
-          cancel_at_period_end,
-          period_end,
-          profiles!inner(freelancer_name, currency)
-        `)
-        .eq('user_id', user?.id)
-        .single();
+    if (!user) {
+      setSubscriptionData(null);
+      setLoading(false);
+      return;
+    }
 
-      if (error) throw error;
+    try {
+      // Use the secure subscription_dashboard view
+      const { data, error } = await supabase
+        .from('subscription_dashboard')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching subscription data:', error);
+        throw error;
+      }
 
       if (data) {
-        const daysRemaining = data.period_end 
-          ? Math.ceil((new Date(data.period_end).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-          : null;
-
-        const healthStatus = 
-          data.status === 'active' && data.period_end && new Date(data.period_end) > new Date() ? 'ACTIVE' :
-          data.status === 'active' && data.period_end && new Date(data.period_end) <= new Date() ? 'EXPIRED' :
-          data.status === 'trial' ? 'TRIAL' :
-          data.status === 'cancelled' ? 'CANCELLED' : 'UNKNOWN';
-
-        const summary = 
-          data.status === 'active' && !data.cancel_at_period_end ? 'Active Pro - ₹799/month' :
-          data.status === 'active' && data.cancel_at_period_end ? `Cancelling on ${new Date(data.period_end || '').toLocaleDateString()}` :
-          data.status === 'trial' ? 'Free Trial' :
-          data.status === 'cancelled' ? 'Cancelled' :
-          data.status;
-
+        // Data is already processed by the subscription_dashboard view
         setSubscriptionData({
           user_id: data.user_id,
-          freelancer_name: (data.profiles as any).freelancer_name,
-          currency: (data.profiles as any).currency || 'INR',
+          freelancer_name: data.freelancer_name,
+          currency: data.currency || 'INR',
           status: data.status,
           cancel_at_period_end: data.cancel_at_period_end,
           period_end: data.period_end,
-          days_remaining: daysRemaining,
-          next_billing_date: data.period_end ? new Date(data.period_end).toLocaleDateString() : null,
-          subscription_summary: summary,
-          health_status: healthStatus
+          days_remaining: data.days_remaining,
+          next_billing_date: data.next_billing_date ? new Date(data.next_billing_date).toLocaleDateString() : null,
+          subscription_summary: data.subscription_summary,
+          health_status: data.health_status
         });
+      } else {
+        // No subscription data found
+        setSubscriptionData(null);
       }
     } catch (error) {
       console.error('Error fetching subscription data:', error);
+      // Handle authorization errors gracefully
+      if (error.message?.includes('insufficient_privilege') || error.message?.includes('unauthorized')) {
+        setSubscriptionData(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -88,8 +86,31 @@ export const SubscriptionDashboard = () => {
     return <div className="animate-pulse">Loading subscription details...</div>;
   }
 
+  if (!user) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-6">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Please sign in to view subscription details</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!subscriptionData) {
-    return <div className="text-muted-foreground">No subscription data available</div>;
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-6">
+          <div className="text-center">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No subscription data available</p>
+            <p className="text-sm text-muted-foreground mt-1">You may need to set up your subscription first</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   const getStatusColor = (status: string) => {
