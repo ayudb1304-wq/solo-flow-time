@@ -65,6 +65,12 @@ export default {
 				success: {
 					DEFAULT: 'hsl(145, 63%, 42%)',
 					foreground: 'hsl(0, 0%, 100%)'
+				},
+				console: {
+					error: 'hsl(var(--console-error))',
+					warn: 'hsl(var(--console-warn))',
+					info: 'hsl(var(--console-info))',
+					success: 'hsl(var(--console-success))'
 				}
 			},
 			backgroundImage: {

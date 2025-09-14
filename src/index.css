@@ -69,6 +69,12 @@ html {
     /* Animation */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Console/Log Colors */
+    --console-error: 10 89% 60%;
+    --console-warn: 45 100% 60%;
+    --console-info: 215 35% 21%;
+    --console-success: 145 63% 42%;
   }
 
 }
