@@ -5,7 +5,17 @@ import { Webhook } from 'https://esm.sh/standardwebhooks@1.0.0';
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") || "your-webhook-secret";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+  
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
@@ -57,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Use the standard Supabase verification URL format
     const supabaseUrl = (Deno.env.get('SUPABASE_URL') || '').replace(/\/+$/,'');
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
-    const redirect = redirect_to || 'https://soloflow.pro/auth';
+    const redirect = redirect_to || 'https://soloflow.pro/auth?verified=1';
     
     // Build the verification URL - prefer token_hash, fallback to token
     const tokenParam = token_hash
@@ -70,7 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
     const confirmUrl = `${supabaseUrl}/auth/v1/verify?${tokenParam}&type=${encodeURIComponent(email_action_type)}&redirect_to=${encodeURIComponent(redirect)}${anonKey ? `&apikey=${anonKey}` : ''}`;
     
-    console.log('Sending verification email:', { 
+    console.log('Email queued for sending:', { 
       email: user.email, 
       type: email_action_type, 
       hasTokenHash: Boolean(token_hash),
@@ -78,104 +88,66 @@ const handler = async (req: Request): Promise<Response> => {
       redirectTo: redirect 
     });
 
-    const { error } = await resend.emails.send({
+    // Send email asynchronously to avoid hook timeout
+    resend.emails.send({
       from: "SoloFlow <notify@soloflow.pro>",
       to: [user.email],
-      subject: subject,
+      subject,
       html: `
         <!DOCTYPE html>
-        <html lang="en">
+        <html>
         <head>
-          <meta charset="UTF-8">
+          <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${subject}</title>
           <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; }
-            .container { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; text-align: center; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f7f8fc; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; }
+            .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
             .content { padding: 40px 30px; }
-            .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 20px 0; }
-            .button:hover { opacity: 0.9; }
-            .code-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
-            .code { font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold; color: #667eea; letter-spacing: 2px; }
-            .footer { background: #f8f9fa; padding: 30px; text-align: center; color: #666; font-size: 14px; }
-            .feature { display: flex; align-items: center; margin: 15px 0; }
-            .feature-icon { font-size: 20px; margin-right: 12px; }
+            .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 20px 0; transition: transform 0.2s ease; }
+            .button:hover { transform: translateY(-2px); }
+            .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>${headerText}</h1>
-              <p style="font-size: 18px; margin: 0; opacity: 0.9;">${introText}</p>
+              <h1>SoloFlow</h1>
             </div>
-            
             <div class="content">
+              <h2>${headerText}</h2>
+              <p>${introText}</p>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${confirmUrl}" class="button">${actionText}</a>
+                <a href="${confirmUrl}" class="button">Activate Your Account</a>
               </div>
-              
-              <div class="code-section">
-                <p style="margin: 0 0 10px 0; font-weight: bold;">Or use this verification code:</p>
-                <div class="code">${token}</div>
-              </div>
-              
-              ${email_action_type === 'signup' ? `
-              <h3>🚀 What you'll get with Freelance Dashboard:</h3>
-              
-              <div class="feature">
-                <div class="feature-icon">⏱️</div>
-                <div><strong>Time Tracking:</strong> Track billable hours across multiple projects</div>
-              </div>
-              
-              <div class="feature">
-                <div class="feature-icon">📄</div>
-                <div><strong>Invoice Generation:</strong> Create professional invoices in seconds</div>
-              </div>
-              
-              <div class="feature">
-                <div class="feature-icon">👥</div>
-                <div><strong>Client Management:</strong> Organize all your client information</div>
-              </div>
-              
-              <div class="feature">
-                <div class="feature-icon">📊</div>
-                <div><strong>Analytics:</strong> Track your business performance (Pro plan)</div>
-              </div>
-              
-              <p><strong>Ready to streamline your freelance business?</strong> Activate your account and start organizing your projects today!</p>
-              ` : ''}
-              
-              <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                <p style="margin: 0; color: #856404;"><strong>⚠️ Security Note:</strong> This link will expire in 24 hours. If you didn't request this ${email_action_type === 'recovery' ? 'password reset' : 'account activation'}, you can safely ignore this email.</p>
-              </div>
-              
-              <p style="color: #666; font-size: 14px;">
+              <p>If you didn't create an account with SoloFlow, you can safely ignore this email.</p>
+              <p style="color: #666; font-size: 14px; margin-top: 30px;">
                 If the button doesn't work, copy and paste this link into your browser:<br>
                 <a href="${confirmUrl}" style="color: #667eea; word-break: break-all;">${confirmUrl}</a>
               </p>
             </div>
-            
             <div class="footer">
-              <p><strong>Freelance Dashboard</strong></p>
-              <p>Streamline your freelance business with professional tools.</p>
-              <p style="font-size: 12px; margin-top: 20px;">
-                If you have any questions, please don't hesitate to reach out to our support team.
-              </p>
+              <p>&copy; ${new Date().getFullYear()} SoloFlow. All rights reserved.</p>
             </div>
           </div>
         </body>
         </html>
       `,
+    }).then(emailResponse => {
+      console.log('Email sent successfully:', emailResponse);
+    }).catch(emailError => {
+      console.error('Failed to send email:', emailError);
     });
 
-    if (error) {
-      throw error;
-    }
-
-    return new Response(JSON.stringify({ success: true }), {
+    // Return immediately to prevent hook timeout
+    return new Response(JSON.stringify({ success: true, message: 'Email queued for delivery' }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders,
+      },
     });
   } catch (error: any) {
     console.error('Error in send-auth-email function:', error);
@@ -187,7 +159,10 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        },
       }
     );
   }

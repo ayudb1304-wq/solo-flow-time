@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "./AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, ArrowRight, Mail, Lock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LoginFormProps {
   onToggleMode: () => void;
@@ -17,6 +18,8 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const { login, resetPassword } = useAuth();
   const { toast } = useToast();
 
@@ -35,10 +38,11 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
       if (error.message?.includes("Email not confirmed") || 
           error.message?.includes("email confirmation") ||
           error.message?.includes("not verified")) {
+        setShowResendVerification(true);
         toast({
           variant: "destructive",
           title: "Email verification required",
-          description: "Please verify your email address first. Check your inbox for a verification email and click the link to activate your account.",
+          description: "Please verify your email address first. Use the 'Resend verification email' button below.",
         });
       } else {
         toast({
@@ -72,6 +76,44 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
       // Error toast is handled in resetPassword function
     } finally {
       setResetLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Email required",
+        description: "Please enter your email address first.",
+      });
+      return;
+    }
+
+    setResendLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth?verified=1`
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Verification email sent!",
+        description: "Please check your inbox (including spam folder) for the new verification email.",
+      });
+      setShowResendVerification(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to resend email",
+        description: error.message || "Please try again or contact support.",
+      });
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -211,6 +253,28 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
           )}
         </Button>
       </form>
+
+      {showResendVerification && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+          <p className="text-sm text-amber-800 font-medium">
+            Email verification required
+          </p>
+          <p className="text-sm text-amber-700">
+            Your account needs to be verified before you can sign in.
+          </p>
+          <Button 
+            onClick={handleResendVerification}
+            disabled={resendLoading}
+            variant="outline"
+            className="w-full h-10 border-amber-300 text-amber-800 hover:bg-amber-100"
+          >
+            {resendLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : null}
+            Resend verification email
+          </Button>
+        </div>
+      )}
 
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
