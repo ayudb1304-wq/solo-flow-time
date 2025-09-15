@@ -329,7 +329,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-card border-border shadow-soft">
+          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-gradient-to-br from-card to-primary/5 border-border shadow-soft">
             <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 md:space-y-2">
@@ -344,7 +344,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-card border-border shadow-soft">
+          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-gradient-to-br from-card to-status-active/5 border-border shadow-soft">
             <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 md:space-y-2">
@@ -359,7 +359,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-card border-border shadow-soft">
+          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-gradient-to-br from-card to-accent/5 border-border shadow-soft">
             <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 md:space-y-2">
@@ -374,7 +374,7 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-card border-border shadow-soft">
+          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-gradient-to-br from-card to-status-pending/5 border-border shadow-soft">
             <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 md:space-y-2">
