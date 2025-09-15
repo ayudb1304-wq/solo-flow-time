@@ -327,73 +327,65 @@ export const Dashboard = ({ onProjectSelect }: DashboardProps) => {
           </p>
         </div>
 
-        {/* Premium Stats Overview */}
+        {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200/50 dark:from-blue-950/50 dark:to-cyan-950/50 dark:border-blue-800/50">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10" />
+          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-card border-border shadow-soft">
             <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 md:space-y-2">
-                  <p className="text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400">Total Hours</p>
-                  <p className="text-2xl md:text-3xl font-bold text-blue-700 dark:text-blue-300">{stats.totalHours.toFixed(1)}h</p>
-                  <p className="text-xs text-blue-600/70 dark:text-blue-400/70">All time tracked</p>
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">Total Hours</p>
+                  <p className="text-2xl md:text-3xl font-bold text-card-foreground">{stats.totalHours.toFixed(1)}h</p>
+                  <p className="text-xs text-muted-foreground">All time tracked</p>
                 </div>
-                <div className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                  <Clock className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                <div className="h-10 w-10 md:h-12 md:w-12 bg-primary/10 rounded-xl flex items-center justify-center shadow-soft">
+                  <Clock className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </div>
               </div>
-              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full blur-xl" />
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200/50 dark:from-purple-950/50 dark:to-pink-950/50 dark:border-purple-800/50">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10" />
+          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-card border-border shadow-soft">
             <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 md:space-y-2">
-                  <p className="text-xs md:text-sm font-medium text-purple-600 dark:text-purple-400">Active Projects</p>
-                  <p className="text-2xl md:text-3xl font-bold text-purple-700 dark:text-purple-300">{projects.length}</p>
-                  <p className="text-xs text-purple-600/70 dark:text-purple-400/70">Currently active</p>
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">Active Projects</p>
+                  <p className="text-2xl md:text-3xl font-bold text-card-foreground">{projects.length}</p>
+                  <p className="text-xs text-muted-foreground">Currently active</p>
                 </div>
-                <div className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                  <Briefcase className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                <div className="h-10 w-10 md:h-12 md:w-12 bg-status-active/10 rounded-xl flex items-center justify-center shadow-soft">
+                  <Briefcase className="h-5 w-5 md:h-6 md:w-6 text-status-active" />
                 </div>
               </div>
-              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-xl" />
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50 dark:from-green-950/50 dark:to-emerald-950/50 dark:border-green-800/50">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10" />
+          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-card border-border shadow-soft">
             <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 md:space-y-2">
-                  <p className="text-xs md:text-sm font-medium text-green-600 dark:text-green-400">Total Clients</p>
-                  <p className="text-2xl md:text-3xl font-bold text-green-700 dark:text-green-300">{clients.length}</p>
-                  <p className="text-xs text-green-600/70 dark:text-green-400/70">All clients</p>
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">Total Clients</p>
+                  <p className="text-2xl md:text-3xl font-bold text-card-foreground">{clients.length}</p>
+                  <p className="text-xs text-muted-foreground">All clients</p>
                 </div>
-                <div className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                  <Users className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                <div className="h-10 w-10 md:h-12 md:w-12 bg-accent/10 rounded-xl flex items-center justify-center shadow-soft">
+                  <Users className="h-5 w-5 md:h-6 md:w-6 text-accent" />
                 </div>
               </div>
-              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full blur-xl" />
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200/50 dark:from-orange-950/50 dark:to-amber-950/50 dark:border-orange-800/50">
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10" />
+          <Card className="relative overflow-hidden group hover:scale-105 transition-all duration-300 bg-card border-border shadow-soft">
             <CardContent className="p-4 md:p-6 relative">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 md:space-y-2">
-                  <p className="text-xs md:text-sm font-medium text-orange-600 dark:text-orange-400">Pending Revenue</p>
-                  <p className="text-2xl md:text-3xl font-bold text-orange-700 dark:text-orange-300">{formatCurrency(stats.pendingInvoices)}</p>
-                  <p className="text-xs text-orange-600/70 dark:text-orange-400/70">From sent invoices</p>
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">Pending Revenue</p>
+                  <p className="text-2xl md:text-3xl font-bold text-card-foreground">{formatCurrency(stats.pendingInvoices)}</p>
+                  <p className="text-xs text-muted-foreground">From sent invoices</p>
                 </div>
-                <div className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                  <DollarSign className="h-5 w-5 md:h-6 md:w-6 text-white" />
+                <div className="h-10 w-10 md:h-12 md:w-12 bg-status-pending/10 rounded-xl flex items-center justify-center shadow-soft">
+                  <DollarSign className="h-5 w-5 md:h-6 md:w-6 text-status-pending" />
                 </div>
               </div>
-              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-full blur-xl" />
             </CardContent>
           </Card>
         </div>
